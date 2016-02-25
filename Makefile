@@ -63,12 +63,12 @@ Build/Objects/%.o: %.asm Makefile
 	@mkdir -p $(@D)
 	@$(AS) $(ASFLAGS) -o $@ $<
 
-Build/GLOSS.BIN: $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
+Build/GLOSS.SYS: $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
 	@echo "Building $(@F)"
 	@mkdir -p $(@D)
 	@$(CC) $(LDFLAGS) -o $@ -T Link.ld $^
 
-all: Build/GLOSS.BIN
+all: Build/GLOSS.SYS
 
 clean:
 	@rm -rf Build
