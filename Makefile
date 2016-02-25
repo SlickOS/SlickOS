@@ -18,15 +18,7 @@ all:
 MAKEFILE += --no-builtin-rules
 .SUFFIXES:
 
-BINARIES :=
-
-define Project
-PROJBINARIES := $$(shell find -L $1/Build -type f -maxdepth 1)
-BINARIES += $$(addprefix $1/,$$(PROJBINARIES))
-$1:
-	cd $1 && $(MAKE)
-endef
-$(foreach project,$(PROJECTS),$(eval $(call Project,$(project))))
+BINARIES := Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN Build/Binaries/Gloss/GLOSS.SYS
 
 all: $(PROJECTS)
 
@@ -44,5 +36,17 @@ Build/SlickOS.img: Build/Binaries/Gloss/BOOTSECT.BIN
 	@mkfs.msdos -F 12 $@
 	@dd if=$< of=$@ conv=notrunc bs=512 count=1
 	@sudo mount -t msdos -o loop,fat=12 $@ Build/Structure/FD
-	@sudo cp Build/Binaries/* Build/Structure/FD
+	@sudo cp $(BINARIES) Build/Structure/FD
 	@sudo umount Build/Structure/FD
+
+.PHONY: Gloss-BootSect.FD
+Gloss-BootSect.FD:
+	cd Gloss-BootSect.FD && $(MAKE)
+	cd ..
+	cp Gloss-BootSect.FD/Build/BOOTSECT.BIN Build/Gloss-BootSect.FD/Binaries/BOOTSECT.BIN
+
+.PHONY: Gloss
+Gloss:
+	cd Gloss && $(MAKE)
+	cd ..
+	cp Gloss/Build/GLOSS.SYS Build/Gloss/Binaries/GLOSS.SYS
