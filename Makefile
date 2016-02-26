@@ -39,6 +39,7 @@ Build/SlickOS.img: Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN
 	@dd if=$< of=$@ conv=notrunc bs=512 count=1
 	@sudo mount -t msdos -o loop,fat=12 $@ Build/Structure/FD
 	@sudo cp $(BINARIES) Build/Structure/FD
+	@sleep .1
 	@sudo umount Build/Structure/FD
 
 run: image
