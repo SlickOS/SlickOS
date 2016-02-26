@@ -42,19 +42,19 @@ Build/SlickOS.img: Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN
 	@sleep .1
 	@sudo umount Build/Structure/FD
 
-run: image
-	qemu-system-x86_64 -fda Build/SlickOS.img -boot a
+run: all
+	@qemu-system-x86_64 -fda Build/SlickOS.img -boot a
 
 .PHONY: Gloss-BootSector.FD
 Gloss-BootSector.FD:
-	cd Gloss-BootSector.FD && $(MAKE)
-	cd ..
-	mkdir -p Build/Binaries/Gloss-BootSector.FD
-	cp Gloss-BootSector.FD/Build/BOOTSECT.BIN Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN
+	@cd Gloss-BootSector.FD && $(MAKE)
+	@cd ..
+	@mkdir -p Build/Binaries/Gloss-BootSector.FD
+	@cp Gloss-BootSector.FD/Build/BOOTSECT.BIN Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN
 
 .PHONY: Gloss
 Gloss:
-	cd Gloss && $(MAKE)
-	cd ..
-	mkdir -p Build/Binaries/Gloss
-	cp Gloss/Build/GLOSS.SYS Build/Binaries/Gloss/GLOSS.SYS
+	@cd Gloss && $(MAKE)
+	@cd ..
+	@mkdir -p Build/Binaries/Gloss
+	@cp Gloss/Build/GLOSS.SYS Build/Binaries/Gloss/GLOSS.SYS
