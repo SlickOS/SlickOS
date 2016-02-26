@@ -12,6 +12,7 @@
 
 LDFLAGS := -ffreestanding -O2 -nostdlib -lgcc
 CXXFLAGS := -std=c++11 -ffreestanding -O2 -Wall -Wextra
+CPPFLAGS := -IInclude
 
 .PHONY: all clean rebuild
 all:
@@ -68,7 +69,9 @@ Build/GLOSS.SYS: Build/Objects/Init.o $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
 	@mkdir -p $(@D)
 	@$(CC) $(LDFLAGS) -o $@ -T Link.ld $^
 
+.PHONY: all
 all: Build/GLOSS.SYS
+	@echo "Project: Gloss"
 
 clean:
 	@rm -rf Build

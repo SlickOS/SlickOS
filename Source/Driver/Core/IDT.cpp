@@ -1,6 +1,6 @@
-#include "IDT.hpp"
-#include "HardwarePort.hpp"
-#include "../Terminal/Console.hpp"
+#include <Driver/Core/IDT.hpp>
+#include <Driver/Core/HardwarePort.hpp>
+#include <Driver/Terminal/Console.hpp>
 
 //#include "PIT.hpp"
 
@@ -161,15 +161,14 @@ void IDT::IRQHandler(ISRPack Pack) {
 //    Console::Print("Recieved IRQ: Vector ");
 //    Console::PrintHex((uint8_t)(Pack.Vector));
 //    Console::PutChar('\n');
-    if (Pack.Vector >= 0x28) {
-        HardwarePort::OutputByte(0x00A0, 0x20);
-    }
-    HardwarePort::OutputByte(0x0020, 0x20);
-
     if (Callbacks_[Pack.Vector] != 0x00) {
         ISRCallback handler = Callbacks_[Pack.Vector];
         handler(Pack);
     }
+    if (Pack.Vector >= 0x28) {
+        HardwarePort::OutputByte(0x00A0, 0x20);
+    }
+    HardwarePort::OutputByte(0x0020, 0x20);
 }
 
 void IDT::SetHandler(uint8_t Vector, ISRCallback Handler) {

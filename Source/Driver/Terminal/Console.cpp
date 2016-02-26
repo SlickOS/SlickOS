@@ -1,6 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
-#include "Console.hpp"
+#include <Driver/Terminal/Console.hpp>
 
 Console::TextColor Console::ColorBackground_;
 Console::TextColor Console::ColorForeground_;
