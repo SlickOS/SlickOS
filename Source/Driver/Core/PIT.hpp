@@ -7,9 +7,9 @@ class PIT {
 public:
     static void Handler(IDT::ISRPack Pack) {
         tick++;
-        if (tick % 1000 == 0x00) {
+        if (tick % 25 == 0x00) {
             Console::Print("PIT Interrupt: Tick #");
-            Console::PrintDecimal(tick/1000);
+            Console::PrintDecimal(tick/25);
             Console::PutChar('\n');
         }
     }

@@ -27,8 +27,8 @@ void Console::Print(const char *Text) {
 
 // template <typename T1, typename... ArgT>
 // void Console::Print(const char *Text, T1 Arg1, ArgT... Args) {
-//     size_t numArgs = sizeof...(Args);
-//     if (numArgs >= 1) {
+//     size_t NumberArgs = sizeof...(Args);
+//     if (NumberArgs >= 1) {
 //         Console::Print(Text, Args...);
 //     }
 // }
@@ -104,4 +104,62 @@ void Console::Init(void) {
     CursorX_ = 0;
     ColorForeground_ = TextColor::Red;
     ColorBackground_ = TextColor::Black;
+}
+
+void Console::PrintHex(uint64_t Number) {
+    Console::Print("0x");
+    uint64_t digit = 0x0F;
+    for (int i = 60; i >= 0; i -= 4) {
+        uint8_t val = (uint8_t)((Number & (digit << i)) >> i);
+        Console::PutChar((char)(val <= 9 ? '0' + val : 'A' - 10 + val));
+    }
+}
+void Console::PrintHex(uint32_t Number) {
+    Console::Print("0x");
+    uint64_t digit = 0x0F;
+    for (int i = 28; i >= 0; i -= 4) {
+        uint8_t val = (uint8_t)((Number & (digit << i)) >> i);
+        Console::PutChar((char)(val <= 9 ? '0' + val : 'A' - 10 + val));
+    }
+}
+void Console::PrintHex(uint16_t Number) {
+    Console::Print("0x");
+    uint64_t digit = 0x0F;
+    for (int i = 12; i >= 0; i -= 4) {
+        uint8_t val = (uint8_t)((Number & (digit << i)) >> i);
+        Console::PutChar((char)(val <= 9 ? '0' + val : 'A' - 10 + val));
+    }
+}
+void Console::PrintHex(uint8_t Number) {
+    Console::Print("0x");
+    uint64_t digit = 0x0F;
+    for (int i = 4; i >= 0; i -= 4) {
+        uint8_t val = (uint8_t)((Number & (digit << i)) >> i);
+        Console::PutChar((char)(val <= 9 ? '0' + val : 'A' - 10 + val));
+    }
+}
+
+void Console::PrintDecimal(uint64_t Number) {
+    if (Number == 0) {
+        Console::PutChar('0');
+        return;
+    }
+
+    int64_t num = Number;
+    char reversed[32];
+    int i = 0;
+    while (num > 0) {
+        reversed[i] = '0' + num % 10;
+        num /= 10;
+        i++;
+    }
+    reversed[i] = 0;
+
+    char actual[32];
+    actual[i--] = 0;
+    int j = 0;
+    while(i >= 0) {
+        actual[i--] = reversed[j++];
+    }
+    Console::Print(actual);
 }

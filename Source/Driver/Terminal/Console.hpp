@@ -1,3 +1,5 @@
+#pragma once
+
 class Console {
 public:
     enum class TextColor : unsigned char {
@@ -25,6 +27,12 @@ public:
 //    template <typename T1, typename... ArgT> static void Print(const char *Text, T1 Arg1, ArgT... Args);
 
     static void PutChar(char Char);
+
+    static void PrintHex(uint64_t Number);
+    static void PrintHex(uint32_t Number);
+    static void PrintHex(uint16_t Number);
+    static void PrintHex(uint8_t Number);
+    static void PrintDecimal(uint64_t Number);
 
     static void SetForeground(TextColor Color);
     static void SetBackground(TextColor Color);

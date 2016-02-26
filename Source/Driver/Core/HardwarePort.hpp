@@ -1,3 +1,5 @@
+#pragma once
+
 class HardwarePort {
 public:
     static inline void OutputByte(uint16_t Port, uint8_t Value) {
