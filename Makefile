@@ -18,16 +18,18 @@ all:
 MAKEFILE += --no-builtin-rules
 .SUFFIXES:
 
+IMAGE := Build/SlickOS.img
+
 BINARIES := Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN Build/Binaries/Gloss/GLOSS.SYS
 
-all: $(PROJECTS)
+all: $(PROJECTS) image
 
 clean:
 	@rm -rf $(addsuffix /Build,$(PROJECTS))
 
 rebuild: clean all
 
-image: Build/SlickOS.img
+image: $(IMAGE)
 
 Build/SlickOS.img: Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN
 	@mkdir -p $(@D)
@@ -39,7 +41,7 @@ Build/SlickOS.img: Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN
 	@sudo cp $(BINARIES) Build/Structure/FD
 	@sudo umount Build/Structure/FD
 
-run:
+run: image
 	qemu-system-x86_64 -fda Build/SlickOS.img -boot a
 
 .PHONY: Gloss-BootSector.FD
