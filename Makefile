@@ -63,7 +63,7 @@ Build/Objects/%.o: %.asm Makefile
 	@mkdir -p $(@D)
 	@$(AS) $(ASFLAGS) -o $@ $<
 
-Build/GLOSS.SYS: $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
+Build/GLOSS.SYS: Build/Objects/Init.o $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
 	@echo "Building $(@F)"
 	@mkdir -p $(@D)
 	@$(CC) $(LDFLAGS) -o $@ -T Link.ld $^
