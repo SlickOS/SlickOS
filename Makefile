@@ -42,7 +42,7 @@ Build/SlickOS.img: Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN
 	@sleep .1
 	@sudo umount Build/Structure/FD
 
-run: all
+run: rebuild
 	@qemu-system-x86_64 -fda Build/SlickOS.img -boot a
 
 .PHONY: Gloss-BootSector.FD
