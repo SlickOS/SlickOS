@@ -1,6 +1,8 @@
 #include <stdint.h>
 #include <stddef.h>
-#include <Driver/Terminal/Console.hpp>
+#include <Driver/Console.hpp>
+
+using Console = Driver::Console;
 
 Console::TextColor Console::ColorBackground_;
 Console::TextColor Console::ColorForeground_;
@@ -102,7 +104,7 @@ void Console::UpdateHardwareCursor(void) {
 void Console::Init(void) {
     CursorY_ = 0;
     CursorX_ = 0;
-    ColorForeground_ = TextColor::Red;
+    ColorForeground_ = TextColor::LightGray;
     ColorBackground_ = TextColor::Black;
 }
 
