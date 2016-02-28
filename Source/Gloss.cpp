@@ -57,16 +57,17 @@ void PrintMemory(uint64_t Address, uint64_t Count) {
 extern "C" void GlossMain(BootInfo *Info) {
     Init();
 
-    Console::Print("Memory Map Entries: "); Console::PrintDecimal(Info->MemoryMapCount); Console::Print("\n");
-    Console::Print("Memory Map Address: "); Console::PrintHex((uint32_t)Info->MemoryMapAddress); Console::Print("\n");
-    Console::Print("GDT Address:        "); Console::PrintHex((uint32_t)Info->GDTAddress); Console::Print("\n");
-    Console::Print("PML4 Address:       "); Console::PrintHex((uint32_t)Info->PML4Address); Console::Print("\n");
+    Console::Print("Boot Informtion Structure:\n");
+    Console::Print("  (1) Memory Map Entries: "); Console::PrintDecimal(Info->MemoryMapCount); Console::Print("\n");
+    Console::Print("  (2) Memory Map Address: "); Console::PrintHex((uint32_t)Info->MemoryMapAddress); Console::Print("\n");
+    Console::Print("  (3) GDT Address:        "); Console::PrintHex((uint32_t)Info->GDTAddress); Console::Print("\n");
+    Console::Print("  (4) PML4 Address:       "); Console::PrintHex((uint32_t)Info->PML4Address); Console::Print("\n");
     Console::Print("\n");
 
     PrintMemory(Info->MemoryMapAddress, Info->MemoryMapCount);
     Console::Print("\n");
 
-    Console::Print("RSDP Address: "); Console::PrintHex((uint64_t)ACPI::RSDP()); Console::Print(" ");
+    Console::Print("RSDP Address: "); Console::PrintHex((uint64_t)ACPI::RSDP()); Console::Print("  <<  ");
     Console::PutChar('"');
     Console::PutChar(*((uint8_t *)(ACPI::RSDP()) + 0));
     Console::PutChar(*((uint8_t *)(ACPI::RSDP()) + 1));
@@ -76,7 +77,21 @@ extern "C" void GlossMain(BootInfo *Info) {
     Console::PutChar(*((uint8_t *)(ACPI::RSDP()) + 5));
     Console::PutChar(*((uint8_t *)(ACPI::RSDP()) + 6));
     Console::PutChar(*((uint8_t *)(ACPI::RSDP()) + 7));
-    Console::PutChar('"'); Console::Print("\n");
+    Console::PutChar('"'); Console::Print("\n\n");
+
+    Console::Print("Testing PIT Sleep Function\n");
+    Console::Print("  (1) Wait 1.250 seconds ");
+    PIT::Sleep(1250);
+    Console::Print("Complete\n");
+    Console::Print("  (2) Wait 0.400 seconds ");
+    PIT::Sleep(400);
+    Console::Print("Complete\n");
+    Console::Print("  (3) Wait 0.777 seconds ");
+    PIT::Sleep(777);
+    Console::Print("Complete\n");
+    Console::Print("PIT Sleep Test Complete\n");
+    //Console::Print("\n");
+
     while(true) {
         asm("hlt");
     }

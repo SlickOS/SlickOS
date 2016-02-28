@@ -11,7 +11,10 @@ namespace Driver {
         public:
             static void Handler(IDT::ISRPack Pack);
             static void Init(void);
+            
             static void SetFrequency(uint32_t Frequency);
+
+            static void Sleep(uint64_t Time);
 
         private:
             static uint64_t Tick_;

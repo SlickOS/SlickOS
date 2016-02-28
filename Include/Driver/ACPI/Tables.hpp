@@ -16,8 +16,10 @@ namespace Driver {
                 uint8_t ChecksumExtended;
                 uint8_t Reserved[3];
             };
-        }
+            struct RSDT {
 
+            };
+        }
         Tables::RSDP *RSDP(void);
     }
 }
