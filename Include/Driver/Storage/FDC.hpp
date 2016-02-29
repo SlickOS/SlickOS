@@ -2,8 +2,10 @@
 
 #include <stdint.h>
 #include <Driver/CPU/IDT.hpp>
+#include <Driver/Memory.hpp>
 
 using IDT = Driver::CPU::IDT;
+namespace Memory = Driver::Memory;
 
 namespace Driver {
     namespace Storage {
@@ -59,11 +61,20 @@ namespace Driver {
                 Seek = 0x0F
             };
 
+            enum class CommandExtension : uint8_t {
+                SkipDeleted = 0x20,
+                Density = 0x40,
+                Multitrack = 0x80
+            };
+
             static void Handler(IDT::ISRPack Pack);
             static void Init(void);
             
             static void Reset(void);
             static void Wait(void);
+
+            static void LBACHS(uint64_t LBA, uint8_t *Head, uint8_t *Track, uint8_t *Sector);
+            static uint8_t *ReadSector(uint64_t LBA);
 
             // Convienence Functions
             static void WriteDOR(uint8_t Value);
@@ -79,13 +90,22 @@ namespace Driver {
             static void EnableMotor(uint8_t Drive);
             static void DisableMotor(uint8_t Drive);
 
+            // DMA Functions
+            static void DMAInit(void);
+            static void DMARead(void);
+            static void DMAWrite(void);
+
             // Commands
             static void CommandSpecify(uint8_t StepRate, uint8_t LoadTime, uint8_t UnloadTime, bool DMA);
             static uint8_t CommandCheckStatus(uint8_t Head, uint8_t Drive);
             static void CommandReadSector(uint64_t Address, uint8_t Head, uint8_t Track, uint8_t Cylinder, uint8_t Drive);
             static int CommandCalibrate(uint8_t Drive);
-            static void CommandCheckInterrupt(uint8_t *Status, uint8_t *Cylinder, uint8_t Drive);
-            static void CommandSeek(uint8_t Cylinder, uint8_t Head);
+            static void CommandCheckInterrupt(uint8_t *Status, uint8_t *Cylinder);
+            static int CommandSeek(uint8_t Cylinder, uint8_t Head, uint8_t Drive);
+
+        private:
+            static uint8_t CurrentDrive_;
+            static uint64_t DMAAddress_;
         };
     }
 }

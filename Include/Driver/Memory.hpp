@@ -5,6 +5,7 @@
 namespace Driver {
     namespace Memory {
         bool Equal(const uint8_t *A, const uint8_t *B, uint64_t Size);
+        void Copy(const uint8_t *A, uint8_t *B, uint64_t Size);
     }
 }
 

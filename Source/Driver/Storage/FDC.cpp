@@ -8,7 +8,6 @@ using IDT = Driver::CPU::IDT;
 using Port = Driver::Port;
 using PIT = Driver::Legacy::PIT;
 
-bool FDCInitialized = false;
 bool IRQOccurance = false;
 
 void FDC::Handler(IDT::ISRPack Pack) {
@@ -21,28 +20,55 @@ void FDC::Reset(void) {
 
     Disable();
     Enable();
-    Wait();
+//    Wait();
 
     for (uint8_t i = 0; i < 4; ++i) {
         CommandCheckInterrupt(&status0, &cylinder);
     }
 
     WriteControl(0x00);
+    CommandSpecify(3, 16, 240, true);
+    CommandCalibrate(CurrentDrive_);
 }
 
 void FDC::Init(void) {
-    if (FDCInitialized) {
-        FDC::Reset();
-    }
-    uint8_t status = Port::InputByte((uint16_t)(Controller::Primary) + (uint16_t)(Register::Status));
-    if ((status & 0xC0) != 0x80) {
+    IDT::SetHandler(0x26, &FDC::Handler);
+    CurrentDrive_ = 0;
+    DMAAddress_ = 0x7000;
+    DMAInit();
+    Reset();
+    CommandSpecify(13, 1, 0x0F, true);
+}
 
+void FDC::LBACHS(uint64_t LBA, uint8_t *Head, uint8_t *Track, uint8_t *Sector) {
+    *Head = (uint8_t)((LBA % 36) / 18);
+    *Track = (uint8_t)(LBA / 36);
+    *Sector = (uint8_t)((LBA % 36) + 1);
+}
+
+uint8_t *FDC::ReadSector(uint64_t LBA) {
+    if (CurrentDrive_ >= 4) {
+        return 0;
     }
+    uint8_t head = 0;
+    uint8_t track = 0;
+    uint8_t sector = 1;
+    LBACHS(LBA, &head, &track, &sector);
+    EnableMotor(CurrentDrive_);
+    if (CommandSeek(track, head, CurrentDrive_) != 0) {
+        return 0;
+    }
+
+    CommandReadSector(0, head, track, sector, CurrentDrive_);
+
+    DisableMotor(CurrentDrive_);
+
+    return (uint8_t*)(0x7000);
 }
 
 void FDC::Wait(void) {
     while(!IRQOccurance) {
-        asm("hlt");
+//        asm("hlt");
     }
     IRQOccurance = false;
 }
@@ -105,7 +131,7 @@ uint8_t FDC::CommandCheckStatus(uint8_t Head, uint8_t Drive) {
     return ReadData();
 }
 
-void FDC::CommandReadSector(uint64_t Address, uint8_t Head, uint8_t Track, uint8_t Cylinder, uint8_t Drive) {
+void FDC::CommandReadSector(uint64_t Address, uint8_t Head, uint8_t Track, uint8_t Sector, uint8_t Drive) {
     uint8_t status0;
     uint8_t cylinder;
 
@@ -128,6 +154,8 @@ void FDC::CommandReadSector(uint64_t Address, uint8_t Head, uint8_t Track, uint8
     }
 
     CommandCheckInterrupt(&status0, &cylinder);
+
+//    Memory::Copy((uint8_t *)(DMAAddress_), (uint8_t *)(Address), 512);
 }
 
 int FDC::CommandCalibrate(uint8_t Drive) {
@@ -144,7 +172,7 @@ int FDC::CommandCalibrate(uint8_t Drive) {
     for (int i = 0; i < 10; ++i) {
         WriteData((uint8_t)Command::Calibrate);
         WriteData(Drive);
-        Wait();
+//        Wait();
         CommandCheckInterrupt(&status0, &cylinder);
 
         if (!cylinder) {
@@ -163,7 +191,7 @@ void FDC::CommandCheckInterrupt(uint8_t *Status, uint8_t *Cylinder) {
     *Cylinder = ReadData();
 }
 
-void FDC::CommandSeek(uint8_t Cylinder, uint8_t Head, uint8_t Drive) {
+int FDC::CommandSeek(uint8_t Cylinder, uint8_t Head, uint8_t Drive) {
     uint8_t status0;
     uint8_t cylinder;
 
@@ -177,7 +205,7 @@ void FDC::CommandSeek(uint8_t Cylinder, uint8_t Head, uint8_t Drive) {
     for (int i = 0; i < 10; ++i) {
         WriteData((uint8_t)Command::Calibrate);
         WriteData(Drive);
-        Wait();
+//        Wait();
         CommandCheckInterrupt(&status0, &cylinder);
 
         if (cylinder == Cylinder) {
@@ -189,3 +217,30 @@ void FDC::CommandSeek(uint8_t Cylinder, uint8_t Head, uint8_t Drive) {
     DisableMotor(Drive);
     return -2;
 }
+
+void FDC::DMAInit(void) {
+    Port::OutputByte(0x0A, 0x06);
+    Port::OutputByte(0xD8, 0xFF);
+    Port::OutputByte(0x04, 0x00);
+    Port::OutputByte(0x04, 0x70);
+    Port::OutputByte(0xD8, 0xFF);
+    Port::OutputByte(0x05, 0xFF);
+    Port::OutputByte(0x05, 0x23);
+    Port::OutputByte(0x80, 0x00);
+    Port::OutputByte(0x0A, 0x02);
+}
+
+void FDC::DMARead(void) {
+    Port::OutputByte(0x0A, 0x06);
+    Port::OutputByte(0x0B, 0x56);
+    Port::OutputByte(0x0A, 0x02);
+}
+
+void FDC::DMAWrite(void) {
+    Port::OutputByte(0x0A, 0x06);
+    Port::OutputByte(0x0B, 0x5A);
+    Port::OutputByte(0x0A, 0x02);
+}
+
+uint8_t FDC::CurrentDrive_;
+uint64_t FDC::DMAAddress_;

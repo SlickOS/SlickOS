@@ -3,11 +3,13 @@
 #include <Driver/CPU/IDT.hpp>
 #include <Driver/Legacy/PIT.hpp>
 #include <Driver/ACPI/Tables.hpp>
+#include <Driver/Storage/FDC.hpp>
 
 using PIT = Driver::Legacy::PIT;
 using IDT = Driver::CPU::IDT;
 using Console = Driver::Console;
 namespace ACPI = Driver::ACPI;
+using FDC = Driver::Storage::FDC;
 
 struct BootInfo {
     uint64_t MemoryMapCount;
@@ -23,6 +25,19 @@ void Init(void) {
 
     PIT::SetFrequency(1000);
     Console::Clear();
+
+    FDC::Init();
+}
+
+void PrintSector(uint64_t LBA) {
+    uint8_t *addr = FDC::ReadSector(LBA);
+    for (int i = 0; i < 16; ++i) {
+        for (int j = 0; j < 16; ++j) {
+            Console::PrintHex(addr[i * 16 + j]);
+            Console::Print(" ");
+        }
+        Console::Print("\n");
+    }
 }
 
 void PrintMemory(uint64_t Address, uint64_t Count) {
@@ -90,7 +105,8 @@ extern "C" void GlossMain(BootInfo *Info) {
     PIT::Sleep(777);
     Console::Print("Complete\n");
     Console::Print("PIT Sleep Test Complete\n");
-    //Console::Print("\n");
+    Console::Print("\n");
+    PrintSector(0);
 
     while(true) {
         asm("hlt");
