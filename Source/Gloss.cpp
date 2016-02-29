@@ -2,12 +2,11 @@
 #include <Driver/Console.hpp>
 #include <Driver/Legacy/PIT.hpp>
 #include <Driver/ACPI/Tables.hpp>
-// #include <Driver/Storage/FDC.hpp>
-
 #include <Driver/CPU/IDT.hpp>
 using IDT = Driver::CPU::IDT;
 #include <Driver/Legacy/PIC.hpp>
 using PIC = Driver::Legacy::PIC;
+#include <Driver/PS2Keyboard/PS2Keyboard.hpp>
 
 using PIT = Driver::Legacy::PIT;
 using IDT = Driver::CPU::IDT;
@@ -22,9 +21,17 @@ struct BootInfo {
     uint64_t PML4Address;
 };
 
+<<<<<<< HEAD
 // void Init(void) {
 //     idt = IDT();
 //     pic = PIC();
+=======
+void Init(void) {
+    IDT::Init();
+    PIT::Init();
+    Console::Init();
+    PS2Keyboard::Init();
+>>>>>>> master
 
 //     // IDT::Init();
 //     PIT::Init();
@@ -60,17 +67,15 @@ void PrintMemory(uint64_t Address, uint64_t Count) {
         if (val == 0x01) {
             Console::Print("Free Memory\n");
             freeMem += *(ptr + 1);
-        }
-        else if (val == 0x03) {
+        } else if (val == 0x03) {
             Console::Print("Reclaimable Memory\n");
-        }
-        else {
+        } else {
             Console::Print("Unusable Memory\n");
         }
     }
     Console::Print("\n");
     Console::Print("Total Free Memory: ");
-    Console::PrintDecimal(freeMem/1024/1024);
+    Console::PrintDecimal(freeMem / 1024 / 1024);
     Console::Print(" MiB (");
     Console::PrintDecimal(freeMem);
     Console::Print(" Bytes)\n");
@@ -122,7 +127,7 @@ extern "C" void GlossMain(BootInfo *Info) {
     Console::Print("\n");
     // PrintSector(0);
 
-    while(true) {
+    while (true) {
         asm("hlt");
     }
 }
