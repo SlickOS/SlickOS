@@ -1,7 +1,6 @@
 #pragma once
 
-#include <stdint.h>
-#include "../Core/IDT.hpp"
+using IDT = Driver::CPU::IDT;
 
 class PS2Keyboard {
 public:

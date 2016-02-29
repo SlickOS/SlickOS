@@ -1,8 +1,8 @@
 #include <stdint.h>
-#include <Driver/Core/HardwarePort.hpp>
-#include <Driver/Core/IDT.hpp>
+#include <Driver/Port.hpp>
+#include <Driver/CPU/IDT.hpp>
 #include <Driver/PS2Keyboard/PS2Keyboard.hpp>
-#include <Driver/Terminal/Console.hpp>
+#include <Driver/Console.hpp>
 
 #define BACKSPACE 0x0E
 
@@ -46,13 +46,18 @@ unsigned char scancode[128] = {
 	0,	/* All other keys are undefined */
 };
 
+using IDT = Driver::CPU::IDT;
+using Console = Driver::Console;
+using Port = Driver::Port;
+
+
 void PS2Keyboard::Handler(IDT::ISRPack Pack) {
 
 	// On interrupt received for keypress, print it out. Basically as simple as it can get.
 	// To add: modifier keys (shift)
 	//         Change it so that instead of writing to the console, it will either send the char to active process
 	//             or write to a singular active buffer. We'll see. Maybe something completely different.
-	uint8_t rcvd = HardwarePort::InputByte(0x60);
+	uint8_t rcvd = Port::InputByte(0x60);
 
 	if (rcvd < 0x7D) {
 		// Console::Print("Keyboard Interrupt: got ");

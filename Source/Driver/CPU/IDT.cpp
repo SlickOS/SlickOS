@@ -1,8 +1,8 @@
-#include <Driver/Core/IDT.hpp>
-#include <Driver/Core/HardwarePort.hpp>
-#include <Driver/Terminal/Console.hpp>
+#include <Driver/CPU/IDT.hpp>
+#include <Driver/Port.hpp>
 
-//#include "PIT.hpp"
+using Port = Driver::Port;
+using IDT = Driver::CPU::IDT;
 
 extern "C" {
     extern void FlushIDT(uint32_t);
@@ -68,19 +68,19 @@ void IDT::Init(void) {
     Descriptor_.Limit = (sizeof(IDT::Entry) * 256) - 1;
     Descriptor_.Offset = (uint64_t)&Entries_;
 
-    uint8_t PICMasterMask = HardwarePort::InputByte(0x0021);
-    uint8_t PICSlaveMask = HardwarePort::InputByte(0x00A1);
+    uint8_t PICMasterMask = Port::InputByte(0x0021);
+    uint8_t PICSlaveMask = Port::InputByte(0x00A1);
 
-    HardwarePort::OutputByte(0x0020, 0x11);
-    HardwarePort::OutputByte(0x00A0, 0x11);
-    HardwarePort::OutputByte(0x0021, 0x20);
-    HardwarePort::OutputByte(0x00A1, 0x28);
-    HardwarePort::OutputByte(0x0021, 0x04);
-    HardwarePort::OutputByte(0x00A1, 0x02);
-    HardwarePort::OutputByte(0x0021, 0x01);
-    HardwarePort::OutputByte(0x00A1, 0x01);
-    HardwarePort::OutputByte(0x0021, PICMasterMask);
-    HardwarePort::OutputByte(0x00A1, PICSlaveMask);
+    Port::OutputByte(0x0020, 0x11);
+    Port::OutputByte(0x00A0, 0x11);
+    Port::OutputByte(0x0021, 0x20);
+    Port::OutputByte(0x00A1, 0x28);
+    Port::OutputByte(0x0021, 0x04);
+    Port::OutputByte(0x00A1, 0x02);
+    Port::OutputByte(0x0021, 0x01);
+    Port::OutputByte(0x00A1, 0x01);
+    Port::OutputByte(0x0021, PICMasterMask);
+    Port::OutputByte(0x00A1, PICSlaveMask);
 
     IDT::SetGate(0x00, (uint64_t)ISRCallx00, 0x08, 0x8E);
     IDT::SetGate(0x01, (uint64_t)ISRCallx01, 0x08, 0x8E);
@@ -131,8 +131,6 @@ void IDT::Init(void) {
     IDT::SetGate(0x2E, (uint64_t)ISRCallx2E, 0x08, 0x8E);
     IDT::SetGate(0x2F, (uint64_t)ISRCallx2F, 0x08, 0x8E);
 
-//    IDT::SetHandler(0x20, &PIT::Handler);
-
     IDT::Flush();
 }
 void IDT::Flush(void) {
@@ -149,26 +147,20 @@ void IDT::SetGate(uint8_t Vector, uint64_t Offset, uint16_t Selector, uint8_t Fl
 }
 
 void IDT::Handler(ISRPack Pack) {
-//    Console::Print("Recieved Interrupt: Vector ");
-//    Console::PrintHex((uint8_t)Pack.Vector);
-//    Console::PutChar('\n');
     if (Pack.Vector >= 0x20 && Pack.Vector <= 0x2F) {
         IDT::IRQHandler(Pack);
     }
 }
 
 void IDT::IRQHandler(ISRPack Pack) {
-//    Console::Print("Recieved IRQ: Vector ");
-//    Console::PrintHex((uint8_t)(Pack.Vector));
-//    Console::PutChar('\n');
     if (Callbacks_[Pack.Vector] != 0x00) {
         ISRCallback handler = Callbacks_[Pack.Vector];
         handler(Pack);
     }
     if (Pack.Vector >= 0x28) {
-        HardwarePort::OutputByte(0x00A0, 0x20);
+        Port::OutputByte(0x00A0, 0x20);
     }
-    HardwarePort::OutputByte(0x0020, 0x20);
+    Port::OutputByte(0x0020, 0x20);
 }
 
 void IDT::SetHandler(uint8_t Vector, ISRCallback Handler) {

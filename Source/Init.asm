@@ -139,6 +139,12 @@ GDT64.End:
     .word (GDT64.End - GDT64 - 1)
     .quad GDT64
 
+BootInfo:
+    BootInfo.MemoryMapCount:        .skip 8, 0x00
+    BootInfo.MemoryMapAddress:      .skip 8, 0x00
+    BootInfo.GDTAddress:            .skip 8, 0x00
+    BootInfo.PML4Address:           .skip 8, 0x00
+
 .code64
 BootLong:
     cli
@@ -152,6 +158,17 @@ BootLong:
 
     mov rax, 0xB8012;
     mov word ptr [rax], 0x8888;
+
+    mov rax, qword ptr [BSS.Memory.Map.Count]
+    mov qword ptr [BootInfo.MemoryMapCount], rax
+    mov rax, qword ptr [BSS.Memory.Map.Address]
+    mov qword ptr [BootInfo.MemoryMapAddress], rax
+    mov rax, offset GDT64
+    mov qword ptr [BootInfo.GDTAddress], rax
+    mov rax, 0x0000000000009000
+    mov qword ptr [BootInfo.PML4Address], rax
+
+    mov rdi, offset [BootInfo]
 
     // mov rdi, qword ptr [BSS.Memory.Map.Count]
     // mov rsi, qword ptr [BSS.Memory.Map.Address]
