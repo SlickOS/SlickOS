@@ -10,8 +10,8 @@
 # with the source of this project, see http://choosealicense.com/licenses/mit #
 ###############################################################################
 
-LDFLAGS := -ffreestanding -O2 -nostdlib -lgcc
-CXXFLAGS := -std=c++11 -ffreestanding -O2 -Wall -Wextra
+LDFLAGS := -ffreestanding -O1 -nostdlib -lgcc
+CXXFLAGS := -std=c++11 -ffreestanding -O1 -Wall -Wextra
 CPPFLAGS := -IInclude
 
 .PHONY: all clean rebuild

@@ -3,10 +3,12 @@
 #include <stdint.h>
 
 namespace Driver {
-    namespace Memory {
-        bool Equal(const uint8_t *A, const uint8_t *B, uint64_t Size);
-        void Copy(const uint8_t *A, uint8_t *B, uint64_t Size);
-    }
+    class Memory {
+    public:
+        static bool Equal(const uint8_t *Dest, const uint8_t *Src, uint64_t Size);
+        static void Copy(uint8_t *Dest, const uint8_t *Src, uint64_t Size);
+        static void Set(uint8_t *Dest, uint8_t Value, uint64_t Size);
+    };
 }
 
 // class Memory {

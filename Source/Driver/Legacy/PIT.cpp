@@ -1,18 +1,20 @@
 #include <Driver/Legacy/PIT.hpp>
+#include <Driver/Legacy/PIC.hpp>
 #include <Driver/Port.hpp>
 
 #include <Driver/Console.hpp>
 using Console = Driver::Console;
 
-using IDT = Driver::CPU::IDT;
 using Port = Driver::Port;
 using PIT = Driver::Legacy::PIT;
+using PIC = Driver::Legacy::PIC;
 
 void PIT::Handler(IDT::ISRPack Pack) {
+//    Console::Print("Handler, Bitch!\n");
     Tick_++;
 }
 void PIT::Init(void) {
-    IDT::SetHandler(0x20, &PIT::Handler);
+    PIC::Instance().SetHandler(0x00, &PIT::Handler);
     SetFrequency(1000);
 }
 void PIT::SetFrequency(uint32_t Frequency) {
@@ -22,6 +24,7 @@ void PIT::SetFrequency(uint32_t Frequency) {
     uint8_t high = (uint8_t)((divisor >> 8) & 0xFF);
     Port::OutputByte(0x0040, low);
     Port::OutputByte(0x0040, high);
+    Tick_ = 0x00;
 }
 
 void PIT::Sleep(uint64_t Time) {

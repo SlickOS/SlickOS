@@ -1,15 +1,19 @@
 #include <stdint.h>
 #include <Driver/Console.hpp>
-#include <Driver/CPU/IDT.hpp>
 #include <Driver/Legacy/PIT.hpp>
 #include <Driver/ACPI/Tables.hpp>
-#include <Driver/Storage/FDC.hpp>
+// #include <Driver/Storage/FDC.hpp>
+
+#include <Driver/CPU/IDT.hpp>
+using IDT = Driver::CPU::IDT;
+#include <Driver/Legacy/PIC.hpp>
+using PIC = Driver::Legacy::PIC;
 
 using PIT = Driver::Legacy::PIT;
 using IDT = Driver::CPU::IDT;
 using Console = Driver::Console;
 namespace ACPI = Driver::ACPI;
-using FDC = Driver::Storage::FDC;
+// using FDC = Driver::Storage::FDC;
 
 struct BootInfo {
     uint64_t MemoryMapCount;
@@ -18,27 +22,30 @@ struct BootInfo {
     uint64_t PML4Address;
 };
 
-void Init(void) {
-    IDT::Init();
-    PIT::Init();
-    Console::Init();
+// void Init(void) {
+//     idt = IDT();
+//     pic = PIC();
 
-    PIT::SetFrequency(1000);
-    Console::Clear();
+//     // IDT::Init();
+//     PIT::Init();
+//     Console::Init();
 
-    FDC::Init();
-}
+//     PIT::SetFrequency(1000);
+//     Console::Clear();
 
-void PrintSector(uint64_t LBA) {
-    uint8_t *addr = FDC::ReadSector(LBA);
-    for (int i = 0; i < 16; ++i) {
-        for (int j = 0; j < 16; ++j) {
-            Console::PrintHex(addr[i * 16 + j]);
-            Console::Print(" ");
-        }
-        Console::Print("\n");
-    }
-}
+//     // FDC::Init();
+// }
+
+// void PrintSector(uint64_t LBA) {
+//     uint8_t *addr = FDC::ReadSector(LBA);
+//     for (int i = 0; i < 16; ++i) {
+//         for (int j = 0; j < 16; ++j) {
+//             Console::PrintHex(addr[i * 16 + j]);
+//             Console::Print(" ");
+//         }
+//         Console::Print("\n");
+//     }
+// }
 
 void PrintMemory(uint64_t Address, uint64_t Count) {
     uint64_t freeMem = 0;
@@ -70,7 +77,14 @@ void PrintMemory(uint64_t Address, uint64_t Count) {
 }
 
 extern "C" void GlossMain(BootInfo *Info) {
-    Init();
+    IDT idt();
+    PIC pic();
+
+    Console::Init();
+    Console::Clear();
+
+    PIT::Init();
+    PIT::SetFrequency(1000);
 
     Console::Print("Boot Informtion Structure:\n");
     Console::Print("  (1) Memory Map Entries: "); Console::PrintDecimal(Info->MemoryMapCount); Console::Print("\n");
@@ -106,7 +120,7 @@ extern "C" void GlossMain(BootInfo *Info) {
     Console::Print("Complete\n");
     Console::Print("PIT Sleep Test Complete\n");
     Console::Print("\n");
-    PrintSector(0);
+    // PrintSector(0);
 
     while(true) {
         asm("hlt");

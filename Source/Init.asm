@@ -154,7 +154,7 @@ BootLong:
     mov fs, ax
     mov gs, ax
     mov ss, ax
-    mov sp, 0x7C00
+    mov rsp, 0x20000
 
     mov rax, 0xB8012;
     mov word ptr [rax], 0x8888;

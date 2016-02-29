@@ -1,9 +1,9 @@
-#pragma once
+// #pragma once
 
-namespace Driver {
-    namespace Legacy {
-        class DMA {
+// namespace Driver {
+//     namespace Legacy {
+//         class DMA {
 
-        };
-    }
-}
+//         };
+//     }
+// }

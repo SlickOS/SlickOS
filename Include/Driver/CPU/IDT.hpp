@@ -6,19 +6,6 @@ namespace Driver{
     namespace CPU {
         class IDT {
         public:
-            struct Entry {
-                uint16_t OffsetLow;
-                uint16_t Selector;
-                uint8_t Reserved;
-                uint8_t Flags;
-                uint16_t OffsetHigh;
-                uint32_t OffsetLong;
-                uint32_t Zero;
-            };
-            struct IDTR {
-                uint16_t Limit;
-                uint64_t Offset;
-            } __attribute__((packed));
             struct ISRPack {
                 uint64_t DS;
                 uint64_t RDI;
@@ -37,21 +24,39 @@ namespace Driver{
                 uint64_t UserESP;
                 uint64_t SS;
             };
-            typedef void (*ISRCallback)(ISRPack);
+            struct Entry {
+                uint16_t OffsetLow;
+                uint16_t Selector;
+                uint8_t Reserved;
+                uint8_t Flags;
+                uint16_t OffsetHigh;
+                uint32_t OffsetLong;
+                uint32_t Zero;
+            };
+            struct IDTR {
+                uint16_t Limit;
+                uint64_t Offset;
+            } __attribute__((packed));
+            typedef void (*ISRCallback)(ISRPack); // TODO: Replace with 'Delegate' class.
 
-            static void Init(void);
-            static void Flush(void);
+            IDT(void);
+            static IDT &Instance(void);
 
-            static void Handler(ISRPack Pack);
-            static void IRQHandler(ISRPack Pack);
+            void Handler(ISRPack Pack);
+            void IRQHandler(ISRPack Pack);
 
-            static void SetGate(uint8_t Vector, uint64_t Base, uint16_t Selector, uint8_t Flags);
-            static void SetHandler(uint8_t Vector, ISRCallback Handler);
+            void SetGate(uint8_t Vector, uint64_t Base, uint16_t Selector, uint8_t Flags);
+            void Flush(void);
+
+            void SetHandler(uint8_t Vector, ISRCallback Handler);
+            ISRCallback GetHandler(uint8_t Vector);
 
         private:
-            static ISRCallback Callbacks_[256];
-            static Entry Entries_[256];
-            static IDTR Descriptor_;
+            ISRCallback Callbacks_[256];
+            Entry Entries_[256];
+            IDTR Descriptor_;
+
+            static IDT *Instance_;
         };
     }
 }
