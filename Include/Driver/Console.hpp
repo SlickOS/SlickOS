@@ -26,8 +26,8 @@ namespace Driver {
 
         static void Clear(void);
 
-        static void Print(const char *Text);
-    //    template <typename T1, typename... ArgT> static void Print(const char *Text, T1 Arg1, ArgT... Args);
+        //static void Print(const char *Text);
+        static void Print(const char *Text, ...);
 
         static void PutChar(char Char);
 
@@ -37,8 +37,12 @@ namespace Driver {
         static void PrintHex(uint8_t Number);
         static void PrintDecimal(uint64_t Number);
 
+        static void DrawBox(uint8_t x, uint8_t y, uint8_t width, uint8_t height);
+
         static void SetForeground(TextColor Color);
         static void SetBackground(TextColor Color);
+        static void SetCursorX(uint8_t X);
+        static void SetCursorY(uint8_t Y);
 
         static void Init(void);
     private:

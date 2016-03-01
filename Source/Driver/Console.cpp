@@ -1,5 +1,6 @@
 #include <stdint.h>
 #include <stddef.h>
+#include <stdarg.h>
 #include <Driver/Console.hpp>
 
 using Console = Driver::Console;
@@ -21,19 +22,36 @@ void Console::Clear(void) {
     }
 }
 
-void Console::Print(const char *Text) {
+/*void Console::Print(const char *Text) {
     while (*Text != 0) {
         PutChar(*(Text++));
     }
-}
+}*/
 
-// template <typename T1, typename... ArgT>
-// void Console::Print(const char *Text, T1 Arg1, ArgT... Args) {
-//     size_t NumberArgs = sizeof...(Args);
-//     if (NumberArgs >= 1) {
-//         Console::Print(Text, Args...);
-//     }
-// }
+void Console::Print(const char *Text, ...) {
+    va_list Args;
+    size_t NumberArgs = sizeof(Args);
+    va_start(Args, NumberArgs);
+
+    while (*Text != 0) {
+        if (*Text == 0x25) {
+	    ++Text;
+	    if (*Text == 0x69 || *Text == 0x75) { //int
+	        PrintDecimal(va_arg(Args, uint64_t));
+	    }
+	    else if (*Text == 0x63) { //char
+	        PutChar((char)va_arg(Args, int));
+	    }
+	    else if (*Text == 0x73) { //string
+	        Print(va_arg(Args, char*));
+	    }
+	    ++Text;
+        }
+        else {
+	    PutChar(*(Text++));
+        }
+    }
+}
 
 void Console::PutChar(char Char) {
     uint8_t colorB = (uint8_t)ColorBackground_ << 4;
@@ -164,4 +182,40 @@ void Console::PrintDecimal(uint64_t Number) {
         actual[i--] = reversed[j++];
     }
     Console::Print(actual);
+}
+
+void Console::DrawBox(uint8_t x, uint8_t y, uint8_t width, uint8_t height) {
+    uint8_t OldX = CursorX_;
+    uint8_t OldY = CursorY_;
+    SetCursorX(x);
+    SetCursorY(y);
+    PutChar('+');
+    for (int i = 0; i < width - 2; ++i) {
+        PutChar('-');
+    }
+    PutChar('+');
+    for (int i = 1; i < height - 1; ++i) {
+        SetCursorX(x);
+        SetCursorY(y + i);
+        PutChar('|');
+        SetCursorX(x + width - 1);
+        PutChar('|');
+    }
+    SetCursorX(x);
+    SetCursorY(y + height - 1);
+    PutChar('+');
+    for (int i = 0; i < width - 2; ++i) {
+        PutChar('-');
+    }
+    PutChar('+');
+    SetCursorX(OldX);
+    SetCursorY(OldY);
+}
+
+void Console::SetCursorX(uint8_t X) {
+    CursorX_ = (X % 80);
+}
+
+void Console::SetCursorY(uint8_t Y) {
+    CursorY_ = (Y % 25);
 }
