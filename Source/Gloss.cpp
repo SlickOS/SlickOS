@@ -90,8 +90,17 @@ extern "C" void GlossMain(BootInfo *Info) {
     PIT::Sleep(777);
     Console::Print("Complete\n");
     Console::Print("PIT Sleep Test Complete\n");
+    PIT::Sleep(5000);
     //Console::Print("\n");
-
+    for (int i = 0; i < 25; ++i) {
+      Console::Print("\n");
+    }
+    Console::DrawBox(10, 5, 60, 10);
+    Console::SetCursorX(31);
+    Console::SetCursorY(8);
+    Console::Print("I'm inside a box!");
+    Console::SetCursorX(0);
+    Console::SetCursorY(22);
     while (true) {
         asm("hlt");
     }
