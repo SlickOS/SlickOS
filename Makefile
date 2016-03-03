@@ -50,24 +50,25 @@ DEP_ASM := $(addprefix Build/Dependencies/,$(patsubst %.asm,%.d,$(shell \
 -include $(DEP_C) $(DEP_CXX) $(DEP_ASM)
 
 Build/Objects/%.o: %.c Makefile
-	@echo "Compiling $(<F)   ->   $(@F)"
+	@echo "    Compiling $(<F)   ->   $(@F)"
 	@mkdir -p $(@D)
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Dependencies/$*.d -c -o $@ $<
 Build/Objects/%.o: %.cpp Makefile
-	@echo "Compiling $(<F)   ->   $(@F)"
+	@echo "    Compiling $(<F)   ->   $(@F)"
 	@mkdir -p $(@D)
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -MT Build/Dependencies/$*.d -c -o $@ $<
 Build/Objects/%.o: %.asm Makefile
-	@echo "Compiling $(<F)   ->   $(@F)"
+	@echo "    Compiling $(<F)   ->   $(@F)"
 	@mkdir -p $(@D)
 	@$(AS) $(ASFLAGS) -o $@ $<
 
 Build/BOOTSECT.BIN: $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
-	@echo "Building $(@F)"
+	@echo "    Linking $(@F)"
 	@mkdir -p $(@D)
 	@$(CC) $(LDFLAGS) -o $@ -T Link.ld $^
 
 all: Build/BOOTSECT.BIN
+	@true
 
 clean:
 	@rm -rf Build

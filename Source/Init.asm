@@ -146,7 +146,7 @@ LoadFAT:
     mov bx, 0x7E00
     call ReadSectors
 
-    mov bx, 0x0500
+    mov bx, 0x8000
     push bx
 
 LoadImage:
@@ -242,7 +242,7 @@ LoadImage:
         mov eax, 0xb8010
         mov word ptr [eax], 0x7777
 
-    jmp 0x0500
+    jmp 0x8000
 
 Failure:
     xor ah, ah
