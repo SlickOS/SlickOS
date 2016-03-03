@@ -18,52 +18,19 @@ BootReal:
     rep stosb
 
     call I8086.IO.Init
-//    call I8086.IO.Clear
+    call I8086.IO.Clear
 
-    mov di, 0x8000
+    mov di, 0x3000
     call I8086.Memory.Map
 
-    call I8086.GDT.Enable
+    call I8086.GDT32.Load
+
     cli
     mov eax, cr0
     or al, 0x01
     mov cr0, eax
 
     jmp 0x08:BootProtected
-
-GDT:
-GDT.Null:
-    .word 0x0000
-    .word 0x0000
-    .byte 0x00
-    .byte 0x00
-    .byte 0x00
-    .byte 0x00
-GDT.Code:
-    .word 0xFFFF
-    .word 0x0000
-    .byte 0x00
-    .byte 0x9A
-    .byte 0xCF
-    .byte 0x00
-GDT.Data:
-    .word 0xFFFF
-    .word 0x0000
-    .byte 0x00
-    .byte 0x92
-    .byte 0xCF
-    .byte 0x00
-GDT.End:
-    .word (GDT.End - GDT - 1)
-    .int GDT
-
-I8086.GDT.Enable:
-    cli
-    pusha
-    lgdt [GDT.End]
-    sti
-    popa
-    ret
 
 .code32
 BootProtected:
@@ -74,18 +41,18 @@ BootProtected:
     mov gs, ax
     mov ss, ax
 
-    mov edi, 0x9000
+    mov edi, 0x4000
     mov cr3, edi
     xor eax, eax
     mov ecx, 0x1000
     rep stosd
     mov edi, cr3
 
-    mov dword ptr [edi], 0xA003
+    mov dword ptr [edi], 0x5003
     add edi, 0x1000
-    mov dword ptr [edi], 0xB003
+    mov dword ptr [edi], 0x6003
     add edi, 0x1000
-    mov dword ptr [edi], 0xC003
+    mov dword ptr [edi], 0x7003
     add edi, 0x1000
 
     mov ebx, 0x00000003
@@ -156,19 +123,31 @@ BootLong:
     mov ss, ax
     mov rsp, 0x20000
 
-    mov rax, 0xB8012;
-    mov word ptr [rax], 0x8888;
+    call AMD64.Console.Init
 
-    mov rax, qword ptr [BSS.Memory.Map.Count]
-    mov qword ptr [BootInfo.MemoryMapCount], rax
-    mov rax, qword ptr [BSS.Memory.Map.Address]
-    mov qword ptr [BootInfo.MemoryMapAddress], rax
-    mov rax, offset GDT64
-    mov qword ptr [BootInfo.GDTAddress], rax
-    mov rax, 0x0000000000009000
-    mov qword ptr [BootInfo.PML4Address], rax
+    cli
 
-    mov rdi, offset [BootInfo]
+    call AMD64.IDT.Init
+    call AMD64.IDT.Load
+    call AMD64.PIC.Init
+
+    sti
+
+    // int 0x29
+
+    // mov rax, 0xB8012;
+    // mov word ptr [rax], 0x8888;
+
+    // mov rax, qword ptr [BSS.Memory.Map.Count]
+    // mov qword ptr [BootInfo.MemoryMapCount], rax
+    // mov rax, qword ptr [BSS.Memory.Map.Address]
+    // mov qword ptr [BootInfo.MemoryMapAddress], rax
+    // mov rax, offset GDT64
+    // mov qword ptr [BootInfo.GDTAddress], rax
+    // mov rax, 0x0000000000009000
+    // mov qword ptr [BootInfo.PML4Address], rax
+
+    // mov rdi, offset [BootInfo]
 
     // mov rdi, qword ptr [BSS.Memory.Map.Count]
     // mov rsi, qword ptr [BSS.Memory.Map.Address]

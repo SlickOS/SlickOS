@@ -10,8 +10,8 @@
 # with the source of this project, see http://choosealicense.com/licenses/mit #
 ###############################################################################
 
-LDFLAGS := -ffreestanding -O1 -nostdlib -lgcc
-CXXFLAGS := -std=c++11 -ffreestanding -O1 -Wall -Wextra
+LDFLAGS := -ffreestanding -O1 -nostdlib -lgcc -mno-red-zone
+CXXFLAGS := -std=c++11 -ffreestanding -O1 -Wall -Wextra -mno-red-zone
 CPPFLAGS := -IInclude
 
 .PHONY: all clean rebuild
@@ -52,26 +52,26 @@ DEP_ASM := $(addprefix Build/Dependencies/,$(patsubst %.asm,%.d,$(shell \
 -include $(DEP_C) $(DEP_CXX) $(DEP_ASM)
 
 Build/Objects/%.o: %.c Makefile
-	@echo "Compiling $(<F)   ->   $(@F)"
+	@echo "    Compiling $(<F)   ->   $(@F)"
 	@mkdir -p $(@D)
 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Dependencies/$*.d -c -o $@ $<
 Build/Objects/%.o: %.cpp Makefile
-	@echo "Compiling $(<F)   ->   $(@F)"
+	@echo "    Compiling $(<F)   ->   $(@F)"
 	@mkdir -p $(@D)
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -MT Build/Dependencies/$*.d -c -o $@ $<
 Build/Objects/%.o: %.asm Makefile
-	@echo "Compiling $(<F)   ->   $(@F)"
+	@echo "    Compiling $(<F)   ->   $(@F)"
 	@mkdir -p $(@D)
 	@$(AS) $(ASFLAGS) -o $@ $<
 
 Build/GLOSS.SYS: Build/Objects/Init.o $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
-	@echo "Building $(@F)"
+	@echo "    Linking $(@F)"
 	@mkdir -p $(@D)
 	@$(CC) $(LDFLAGS) -o $@ -T Link.ld $^
 
 .PHONY: all
 all: Build/GLOSS.SYS
-	@echo "Project: Gloss"
+	@true
 
 clean:
 	@rm -rf Build
