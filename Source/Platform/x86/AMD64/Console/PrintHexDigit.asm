@@ -22,16 +22,16 @@ AMD64.Console.PrintHexDigit:
     push rdi
 
     cmp rdi, 0x09
-    jle AMD64.Console.PrintHex8.Calculate.Number
+    jle AMD64.Console.PrintHexDigit.Calculate.Number
 
-    AMD64.Console.PrintHex8.Calculate.Letter:
+    AMD64.Console.PrintHexDigit.Calculate.Letter:
         add rdi, 0x37
-        jmp AMD64.Console.PrintHex8.PrintDigit
+        jmp AMD64.Console.PrintHexDigit.PrintDigit
 
-    AMD64.Console.PrintHex8.Calculate.Number:
+    AMD64.Console.PrintHexDigit.Calculate.Number:
         add rdi, 0x30
 
-    AMD64.Console.PrintHex8.PrintDigit:
+    AMD64.Console.PrintHexDigit.PrintDigit:
         call AMD64.Console.PutChar
 
     pop rdi

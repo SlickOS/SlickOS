@@ -26,6 +26,9 @@ AMD64.Console.PrintHex8:
     push rcx
     push rdx
     push rdi
+    push rsi
+
+    mov rsi, rdi
 
     mov rdi, 0x30
     call AMD64.Console.PutChar
@@ -49,6 +52,7 @@ AMD64.Console.PrintHex8:
         test dl, dl
         jnz AMD64.Console.PrintHex8.PrintDigit
 
+    pop rsi
     pop rdi
     pop rdx
     pop rcx

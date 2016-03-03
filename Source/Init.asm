@@ -133,6 +133,12 @@ BootLong:
 
     sti
 
+    // mov rdi, 0x123456789ABCDEF0
+    // call AMD64.Console.PrintHex8
+    // call AMD64.Console.PrintHex16
+    // call AMD64.Console.PrintHex32
+    // call AMD64.Console.PrintHex64
+
     // int 0x29
 
     // mov rax, 0xB8012;

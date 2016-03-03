@@ -17,41 +17,22 @@
 // This code is located in the .TEXT (executable) section of the executable.
 .section .text
 
-.global AMD64_Console_Scroll
-AMD64_Console_Scroll:
-.global AMD64.Console.Scroll
-AMD64.Console.Scroll:
-    push rax
-    push rbx
-    push rcx
-    push rdx
-    push rsi
-    push rdi
+.global AMD64_PIC_AcknowledgeIRQ
+AMD64_PIC_AcknowledgeIRQ:
+.global AMD64.PIC.AcknowledgeIRQ
+AMD64.PIC.AcknowledgeIRQ:
+	push rax
 
-    mov rcx, 0x780
-    mov rsi, [AMD64.Console.VideoMemory]
-    add rsi, 0xA0
-    mov rdi, [AMD64.Console.VideoMemory]
-    rep movsw
+	mov al, 0x20
+	out 0x20, al
 
-    xor rax, rax
-    mov ch, byte ptr [AMD64.Console.ColorForeground]
-    mov bh, byte ptr [AMD64.Console.ColorBackground]
-    and ch, 0x0F
-    shl bh, 0x04
-    or ch, bh
-    mov ah, ch
-    xor al, al
-    mov rcx, 0x50
-    rep stosw
+    cmp rdi, 0x08
+    jl AMD64.PIC.AcknowledgeIRQ.Done
 
-    dec word ptr [AMD64.Console.CursorY]
+    AMD64.PIC.AcknowledgeIRQ.Slave:
+    	out 0xA0, al
 
-    pop rdi
-    pop rsi
-    pop rdx
-    pop rcx
-    pop rbx
-    pop rax
-
-    ret
+    AMD64.PIC.AcknowledgeIRQ.Done:
+	    pop rax
+	    ret
+	    

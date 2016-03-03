@@ -59,13 +59,17 @@ AMD64.Console.PutChar:
     je AMD64.Console.PutChar.HandleCarriageReturn
     cmp al, 0x09
     je AMD64.Console.PutChar.HandleTab
+    cmp al, 0x20
+    jl AMD64.Console.PutChar.EOL
     jmp AMD64.Console.PutChar.HandleVisible
 
     AMD64.Console.PutChar.HandleBackspace:
         mov bx, word ptr [AMD64.Console.CursorX]
         test bx, bx
         jz AMD64.Console.PutChar.EOL
-        dec word ptr [AMD64.Console.CursorX]
+        sub word ptr [AMD64.Console.CursorX], 0x02
+        sub rdx, 0x02
+        mov al, 0x20
         jmp AMD64.Console.PutChar.HandleVisible
 
     AMD64.Console.PutChar.HandleNewline:
