@@ -45,7 +45,7 @@ Build/SlickOS.img: Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN
 	@sudo umount Build/Structure/FD
 
 run: all
-	@qemu-system-x86_64 -fda Build/SlickOS.img -boot a -m 256M
+	@qemu-system-x86_64 -fda Build/SlickOS.img -boot a -m 2G
 #	@/opt/local/util/bin/bochs 'boot:floppy' 'cpu: ips=10000000' 'floppya: 1_44=Build/SlickOS.img, status=inserted' 'magic_break: enabled=1' 'romimage: file=/opt/local/util/share/bochs/bios.bin-1.7.5, address=0xfffc0000' 'vgaromimage: file=/opt/local/util/share/bochs/VGABIOS-lgpl-latest'
 
 .PHONY: Gloss-BootSector.FD
