@@ -41,18 +41,18 @@ BootProtected:
     mov gs, ax
     mov ss, ax
 
-    mov edi, 0x4000
+    mov edi, 0x100000
     mov cr3, edi
     xor eax, eax
     mov ecx, 0x1000
     rep stosd
     mov edi, cr3
 
-    mov dword ptr [edi], 0x5003
+    mov dword ptr [edi], 0x101003
     add edi, 0x1000
-    mov dword ptr [edi], 0x6003
+    mov dword ptr [edi], 0x102003
     add edi, 0x1000
-    mov dword ptr [edi], 0x7003
+    mov dword ptr [edi], 0x103003
     add edi, 0x1000
 
     mov ebx, 0x00000003
@@ -179,3 +179,4 @@ BootLong:
 
     cli
     hlt
+    
