@@ -1,0 +1,5 @@
+# cpu: ips=100000000
+boot: floppy
+# clock: sync=realtime, time0=utc
+floppya: 1_44=Build/SlickOS.img, status=inserted
+magic_break: enabled=1
