@@ -133,6 +133,7 @@ LoadRoot:
         jmp Failure
 
 LoadFAT:
+
     mov dx, word ptr [di + 0x001A]
     mov word ptr [Disk.Cluster], dx
 
@@ -146,10 +147,13 @@ LoadFAT:
     mov bx, 0x7E00
     call ReadSectors
 
-    mov bx, 0x8000
+    mov ax, 0x0700
+    mov es, ax
+    mov bx, 0x1000
     push bx
 
 LoadImage:
+
     mov ax, word ptr [Disk.Cluster]
     pop bx
     call ClusterLBA 
@@ -163,7 +167,7 @@ LoadImage:
     mov dx, ax
     shr dx, 0x0001
     add cx, dx
-    mov bx, 0x7E00
+    mov bx, 0x0E00
     add bx, cx
     mov dx, word ptr [bx]
     test ax, 0x0001
@@ -180,60 +184,60 @@ LoadImage:
     LoadImage.Done:
         mov word ptr [Disk.Cluster], dx
 
-        push dx
+        // push dx
 
-        mov bp, '0'
-        mov di, 'A'
-        sub di, 10
+        // mov bp, '0'
+        // mov di, 'A'
+        // sub di, 10
 
-        push bx
-        mov ax, dx
-        xor dx, dx
-        mov bx, 4096
-        div bx
-        xchg ax, dx
-        push ax
-        mov eax, 0xb8000
-        cmp dl, 9
-        cmovbe bx, bp
-        cmova bx, di
-        add dx, bx
-        mov [eax], dl
-        pop ax
-        xor dx, dx
-        mov bx, 256
-        div bx
-        xchg ax, dx
-        push ax
-        mov eax, 0xb8002
-        cmp dl, 9
-        cmovbe bx, bp
-        cmova bx, di
-        add dx, bx
-        mov [eax], dl
-        pop ax
-        xor dx, dx
-        mov bl, 16
-        div bl
-        xchg ax, dx
-        mov eax, 0xb8004
-        push dx
-        cmp dl, 9
-        cmovbe bx, bp
-        cmova bx, di
-        add dx, bx
-        mov [eax], dl
-        pop dx
-        mov dl, dh
-        cmp dl, 9
-        cmovbe bx, bp
-        cmova bx, di
-        add dx, bx
-        mov eax, 0xb8006
-        mov [eax], dl
-        pop bx
+        // push bx
+        // mov ax, dx
+        // xor dx, dx
+        // mov bx, 4096
+        // div bx
+        // xchg ax, dx
+        // push ax
+        // mov eax, 0xb8000
+        // cmp dl, 9
+        // cmovbe bx, bp
+        // cmova bx, di
+        // add dx, bx
+        // mov [eax], dl
+        // pop ax
+        // xor dx, dx
+        // mov bx, 256
+        // div bx
+        // xchg ax, dx
+        // push ax
+        // mov eax, 0xb8002
+        // cmp dl, 9
+        // cmovbe bx, bp
+        // cmova bx, di
+        // add dx, bx
+        // mov [eax], dl
+        // pop ax
+        // xor dx, dx
+        // mov bl, 16
+        // div bl
+        // xchg ax, dx
+        // mov eax, 0xb8004
+        // push dx
+        // cmp dl, 9
+        // cmovbe bx, bp
+        // cmova bx, di
+        // add dx, bx
+        // mov [eax], dl
+        // pop dx
+        // mov dl, dh
+        // cmp dl, 9
+        // cmovbe bx, bp
+        // cmova bx, di
+        // add dx, bx
+        // mov eax, 0xb8006
+        // mov [eax], dl
+        // pop bx
 
-        pop dx
+        // pop dx
 
         cmp dx, 0x0FF0
 
@@ -242,7 +246,11 @@ LoadImage:
         mov eax, 0xb8010
         mov word ptr [eax], 0x7777
 
-    jmp 0x8000
+        xchg bx, bx
+
+    push 0x0000
+    push 0x8000
+    retf
 
 Failure:
     xor ah, ah
