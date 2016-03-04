@@ -327,6 +327,7 @@ extern "C" void GlossMain(void) {
         if (c) {
             // Console::PrintHex((uint8_t)c);
             // Console::PutChar(c);
+            if (tail > head) tail = head;
             if (c == 0x08) {
                 head--;
                 if (tail > head) tail = head;
