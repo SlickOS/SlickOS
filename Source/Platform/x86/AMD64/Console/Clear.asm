@@ -21,15 +21,29 @@
 AMD64_Console_Clear:
 .global AMD64.Console.Clear
 AMD64.Console.Clear:
+    push rax
     push rcx
+    push rbx
+    push rdi
 
-    xor rcx, rcx
-    mov cx, word ptr [AMD64.Console.CursorY]
+    mov rdi, qword ptr [AMD64.Console.VideoMemory]
+    xor rax, rax
+    mov ch, byte ptr [AMD64.Console.ColorForeground]
+    mov bh, byte ptr [AMD64.Console.ColorBackground]
+    and ch, 0x0F
+    shl bh, 0x04
+    or ch, bh
+    mov ah, ch
+    xor al, al
+    mov rcx, 2000
+    rep stosw
 
-    AMD64.Console.Clear.Scroll:
-        call AMD64.Console.Scroll
-        loop AMD64.Console.Clear.Scroll
+    mov word ptr [AMD64.Console.CursorY], 0x00
+    mov word ptr [AMD64.Console.CursorX], 0x00
 
+    pop rdi
     pop rcx
+    pop rbx
+    pop rax
     ret
     

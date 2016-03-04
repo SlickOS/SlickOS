@@ -1,5 +1,7 @@
 #include <Device/PhysicalMemory.hpp>
 
+#include <Device/Console.hpp>
+
 using namespace Device;
 
 void *PhysicalMemory::AllocateBlock(void) {

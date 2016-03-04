@@ -8,6 +8,7 @@
 #include <Device/FDC.hpp>
 #include <Device/PhysicalMemory.hpp>
 #include <Device/VirtualMemory.hpp>
+#include <Device/Memory.hpp>
 
 using namespace Device;
 
@@ -184,6 +185,22 @@ using namespace Device;
 //     }
 // private:
 // };
+// 
+
+
+// Stolen atoi (cuz I'm lazy :P)
+int atoic(char *str, int digits)
+{
+    int res = 0; // Initialize result
+  
+    // Iterate through all characters of input string and
+    // update result
+    for (int i = 0; i < digits; ++i)
+        res = res*10 + str[i] - '0';
+  
+    // return result.
+    return res;
+}
 
 extern "C" void GlossMain(void) {
     Console::Print("Initializing Hardware\n");
@@ -238,7 +255,7 @@ extern "C" void GlossMain(void) {
         Console::SetForeground(Console::TextColor::Green);
         Console::Print("Successful\n");
         Console::SetForeground(Console::TextColor::LightGray);
-        Console::Print("    * Connected to channel: Secondary\n");
+        Console::Print("    * Connected to channel: Primary\n");
     }
     else {
         Console::SetForeground(Console::TextColor::Red);
@@ -265,7 +282,7 @@ extern "C" void GlossMain(void) {
 
 
     Console::Print("  (5) Initializing Floppy Disk Controller - ");
-    if (!FDC::Init()) {
+    if (false) {
         Console::SetForeground(Console::TextColor::Green);
         Console::Print("Successful\n");
         Console::SetForeground(Console::TextColor::LightGray);
@@ -278,10 +295,28 @@ extern "C" void GlossMain(void) {
 
     Console::Print("Hardware Initialized\n");
 
+    // uint8_t *ptr = FDC::ReadSector(0x00);
+    // for (uint64_t i = 0; i < 16; ++i) {
+    //     for (uint64_t j = 0; j < 16; ++j) {
+    //         Console::PrintHex(*ptr++);
+    //         Console::Print(" ");
+    //     }
+    //     // Console::Print("\n");
+    // }
+
     // Device::Console::Print("Current Scancode Set: ");
     // uint8_t set = Device::Keyboard::GetScancodeSet();
     // Device::Console::PrintHex(set);
     // Device::Console::Print("\n");
+
+    uint8_t *buffer = (uint8_t *)0x4000000;
+    uint8_t *head = buffer;
+    uint8_t *tail = buffer;
+    uint64_t count = 0x00;
+
+    // Console::Print("Buffer Location: ");
+    // Console::PrintHex((uint64_t)buffer);
+    // Console::Print("\n");
     
     Console::Print(" > ");
 
@@ -291,13 +326,55 @@ extern "C" void GlossMain(void) {
         // Console::Print("\n");
         if (c) {
             // Console::PrintHex((uint8_t)c);
-            Console::PutChar(c);
+            // Console::PutChar(c);
+            if (c == 0x08) {
+                head--;
+                if (tail > head) tail = head;
+                Console::PutChar(c);
+            }
+            else {
+                *head = c;
+                head++;
+                Console::PutChar(*tail);
+                tail++;
+            }
             if (c == 0x0A) {
+                // head = 0x00;
+                // head++;
+                if (Memory::Equal(buffer, (const uint8_t *)"clear", 5)) {
+                    Console::Clear();
+                    // Console::Print("Clearing!\n");
+                }
+                else if (Memory::Equal(buffer, (const uint8_t *)"echo", 4)) {
+                    tail = buffer + 5;
+                    while (tail < head) {
+                        Console::PutChar(*tail);
+                        tail++;
+                    }
+                }
+                else if (Memory::Equal(buffer, (const uint8_t *)"sleep", 5)) {
+                    tail = buffer + 6;
+                    // head = 0x00;
+                    int val = atoic((char *)tail, head - tail - 1);
+                    PIT::Sleep(val);
+                }
+                else {
+                    Console::Print("Invalid Command. Please Try Again!\n");
+                }
+                head = buffer;
+                tail = buffer;
+                count = 0x00;
                 Console::Print(" > ");
             }
             // asm volatile("hlt");
             // Console::Print("\n");
+            // Console::PutChar(c);
+            // if (c == 0x0A) {
+            //     Console::Print(" > ");
+            // }
         }
         asm volatile("hlt");
+        // Console::PutChar('a');
+        // PIT::Sleep(250);
     }
 }

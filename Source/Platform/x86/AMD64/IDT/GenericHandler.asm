@@ -42,18 +42,20 @@ AMD64.IDT.GenericHandler:
     // mov rax, 0xb8022
     // mov dword ptr [rax], 0x40404040
 
-    mov rax, rdi
-    mov rdi, offset GenericErrorMessage
-    //mov rsi, offset RIPMessage
-    call AMD64.Console.Print
-    //lea rsi, [rip]
-    mov rdi, rax
-    call AMD64.Console.PrintHex8
-    mov rdi, rax
-    mov rax, '.'
-    call AMD64.Console.PutChar
-    mov rax, 0x0A
-    call AMD64.Console.PutChar
+    // mov rax, rdi
+    // mov rdi, offset GenericErrorMessage
+    // //mov rsi, offset RIPMessage
+    // call AMD64.Console.Print
+    // //lea rsi, [rip]
+    // mov rdi, rax
+    // call AMD64.Console.PrintHex8
+    // mov rdi, rax
+    // mov rax, '.'
+    // call AMD64.Console.PutChar
+    // mov rax, 0x0A
+    // call AMD64.Console.PutChar
+
+    // hlt
 
     pop rax
     mov ds, ax

@@ -533,6 +533,10 @@ namespace Device {
     private:
         static bool ShiftDown_;
 
+        static KeyCode *Buffer_;
+        static uint64_t Count_;
+        static uint64_t Index_;
+
         static KeyCode KeyCode_;
     };
 }

@@ -3,6 +3,7 @@
 #include <Device/PS2Controller.hpp>
 #include <Device/IDT.hpp>
 #include <Device/PIC.hpp>
+#include <Device/PhysicalMemory.hpp>
 
 #include <Device/Console.hpp>
 
@@ -11,6 +12,10 @@
 using namespace Device;
 
 bool Keyboard::Init(void) {
+    Buffer_ = (KeyCode *)0x3000000;
+    Count_ = 0x00;
+    Index_ = 0x00;
+
     // Console::Print("\nOutputting Command Scancode Set.\n");
     Port::OutputByte(0x60, 0xF0);
     // Console::Print("Buffering Input.\n");

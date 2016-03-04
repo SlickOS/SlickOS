@@ -29,15 +29,17 @@ void Keyboard::Handler(uint64_t Error, uint64_t Vector) {
     else {
         if ((uint16_t)(key) < 0x100) {
             // if (KeyCode_ == KeyCode::Down_Q) {
-                KeyCode_ = key;
+                Buffer_[Count_] = key;
             // }
             // else {
             //     KeyCode_ = KeyCode::Null;
             // }
         }
         else {
-            KeyCode_ = KeyCode::Null;
+            Buffer_[Count_] = KeyCode::Null;
         }
+        Count_++;
+        // Count_ &= (4096 * 100 / sizeof(KeyCode)) - 1;
     }
 
     PIC::AcknowledgeIRQ(0x01);

@@ -20,6 +20,9 @@ bool PhysicalMemory::Init(void) {
 
         TotalPhysicalMemory_ += *((uint64_t *)(linear + 0x08));
     }
+
+    TotalBlocks_ = TotalPhysicalMemory_ / PhysicalMemory::GetBlockSize();
+
     PhysicalMemory::SetRegion(0x00, TotalPhysicalMemory_);
 
     for (uint64_t i = 0x00; i < I8086_Memory_Map_Count; ++i) {
@@ -33,6 +36,7 @@ bool PhysicalMemory::Init(void) {
             PhysicalMemory::ClearRegion(base, size);
         }
     }
+    PhysicalMemory::SetRegion(0x0000000, 0x3000000);
     return true;
 }
 
