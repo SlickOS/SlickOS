@@ -41,22 +41,29 @@ BootProtected:
     mov gs, ax
     mov ss, ax
 
-    mov edi, 0x100000
+    mov edi, 0x2000000
     mov cr3, edi
     xor eax, eax
     mov ecx, 0x1000
     rep stosd
     mov edi, cr3
 
-    mov dword ptr [edi], 0x101003
+    mov dword ptr [edi], 0x2001003
     add edi, 0x1000
-    mov dword ptr [edi], 0x102003
-    add edi, 0x1000
-    mov dword ptr [edi], 0x103003
+    mov dword ptr [edi], 0x2002003
     add edi, 0x1000
 
+    mov ebx, 0x2003003
+    mov ecx, 0x0200
+
+    SetTEntry:
+        mov dword ptr [edi], ebx
+        add ebx, 0x1000
+        add edi, 0x0008
+        loop SetTEntry
+
     mov ebx, 0x00000003
-    mov ecx, 0x00000200
+    mov ecx, 0x00040000
 
     SetEntry:
         mov dword ptr [edi], ebx

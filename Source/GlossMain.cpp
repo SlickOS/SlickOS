@@ -5,6 +5,9 @@
 #include <Device/PIT.hpp>
 #include <Device/PS2Controller.hpp>
 #include <Device/Keyboard.hpp>
+#include <Device/FDC.hpp>
+#include <Device/PhysicalMemory.hpp>
+#include <Device/VirtualMemory.hpp>
 
 using namespace Device;
 
@@ -188,10 +191,14 @@ extern "C" void GlossMain(void) {
 
     Console::Print("  (1) Initializing PIT - ");
     if (PIT::Init()) {
+        Console::SetForeground(Console::TextColor::Green);
         Console::Print("Successful\n");
+        Console::SetForeground(Console::TextColor::LightGray);
     }
     else {
+        Console::SetForeground(Console::TextColor::Red);
         Console::Print("Failed\n");
+        Console::SetForeground(Console::TextColor::LightGray);
     }
     Console::Print("    * Test 1 (1.000 Seconds) - ");
     PIT::Sleep(1000);
@@ -209,10 +216,14 @@ extern "C" void GlossMain(void) {
 
     Console::Print("  (2) Initializing PS/2 Controller - ");
     if (PS2Controller::Init()) {
+        Console::SetForeground(Console::TextColor::Green);
         Console::Print("Successful\n");
+        Console::SetForeground(Console::TextColor::LightGray);
     }
     else {
+        Console::SetForeground(Console::TextColor::Red);
         Console::Print("Failed\n");
+        Console::SetForeground(Console::TextColor::LightGray);
     }
     if (PS2Controller::Available(Device::PS2Controller::Device::Primary)) {
         Console::Print("    * Primary PS/2 Device Available\n");
@@ -224,12 +235,46 @@ extern "C" void GlossMain(void) {
 
     Console::Print("  (3) Initializing Keyboard - ");
     if (Keyboard::Init()) {
+        Console::SetForeground(Console::TextColor::Green);
         Console::Print("Successful\n");
+        Console::SetForeground(Console::TextColor::LightGray);
+        Console::Print("    * Connected to channel: Secondary\n");
     }
     else {
+        Console::SetForeground(Console::TextColor::Red);
         Console::Print("Failed\n");
+        Console::SetForeground(Console::TextColor::LightGray);
     }
 
+
+    Console::Print("  (4) Initializing Physical Memory Manager - ");
+    if (PhysicalMemory::Init()) {
+        Console::SetForeground(Console::TextColor::Green);
+        Console::Print("Successful\n");
+        Console::SetForeground(Console::TextColor::LightGray);
+        Console::Print("    * Total Memory Available: ");
+        Console::PrintHex(PhysicalMemory::GetTotalMemorySize());
+        Console::Print("\n");
+    }
+    else {
+        Console::SetForeground(Console::TextColor::Red);
+        Console::Print("Failed\n");
+        Console::SetForeground(Console::TextColor::LightGray);
+    }
+
+
+
+    Console::Print("  (5) Initializing Floppy Disk Controller - ");
+    if (!FDC::Init()) {
+        Console::SetForeground(Console::TextColor::Green);
+        Console::Print("Successful\n");
+        Console::SetForeground(Console::TextColor::LightGray);
+    }
+    else {
+        Console::SetForeground(Console::TextColor::Red);
+        Console::Print("Failed\n");
+        Console::SetForeground(Console::TextColor::LightGray);
+    }
 
     Console::Print("Hardware Initialized\n");
 
@@ -237,6 +282,8 @@ extern "C" void GlossMain(void) {
     // uint8_t set = Device::Keyboard::GetScancodeSet();
     // Device::Console::PrintHex(set);
     // Device::Console::Print("\n");
+    
+    Console::Print(" > ");
 
     while (true) {
         char c = Keyboard::GetCharASCII();
@@ -245,6 +292,9 @@ extern "C" void GlossMain(void) {
         if (c) {
             // Console::PrintHex((uint8_t)c);
             Console::PutChar(c);
+            if (c == 0x0A) {
+                Console::Print(" > ");
+            }
             // asm volatile("hlt");
             // Console::Print("\n");
         }

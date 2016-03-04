@@ -19,18 +19,18 @@
 .section .bss
 
 // This variable stores the address of the memory map.
-.global BSSMEM
-BSSMEM:
+.global I8086_Memory_Map_Address
+I8086_Memory_Map_Address:
 .global BSS.Memory.Map.Address
 BSS.Memory.Map.Address:         .skip 8, 0x00
 
 // This variable stores the number of entries in the memory map.
-.global BSSCNT
-BSSCNT:
+.global I8086_Memory_Map_Count
+I8086_Memory_Map_Count:
 .global BSS.Memory.Map.Count
 BSS.Memory.Map.Count:           .skip 8, 0x00
 
-.global BSSMEMEND
-BSSMEMEND:
+.global I8086_Memory_Map_End
+I8086_Memory_Map_End:
 .global BSS.Memory.Map.End
 BSS.Memory.Map.End:             .skip 8, 0x00
