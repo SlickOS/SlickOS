@@ -40,6 +40,7 @@ BootProtected:
     mov fs, ax
     mov gs, ax
     mov ss, ax
+    mov esp, 0x00007000
 
     mov edi, 0x2000000
     mov cr3, edi
