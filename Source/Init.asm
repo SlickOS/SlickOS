@@ -147,9 +147,9 @@ LoadFAT:
     mov bx, 0x7E00
     call ReadSectors
 
-    mov ax, 0x0700
-    mov es, ax
-    mov bx, 0x1000
+    // mov ax, 0x0700
+    // mov es, ax
+    mov bx, 0x8000
     push bx
 
 LoadImage:
@@ -167,7 +167,7 @@ LoadImage:
     mov dx, ax
     shr dx, 0x0001
     add cx, dx
-    mov bx, 0x0E00
+    mov bx, 0x7E00
     add bx, cx
     mov dx, word ptr [bx]
     test ax, 0x0001
