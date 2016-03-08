@@ -24,13 +24,15 @@ namespace Device {
             White = 15
         };
 
-        static void Print(const char *Text);
+        //static void Print(const char *Text);
+        static void Print(const char *Text, ...);
         static void PutChar(char Char);
 
         static void PrintHex(uint64_t Number);
         static void PrintHex(uint32_t Number);
         static void PrintHex(uint16_t Number);
         static void PrintHex(uint8_t Number);
+        static void PrintDecimal(uint64_t Number);
 
         static void SetForeground(TextColor Color);
         static void SetBackground(TextColor Color);
