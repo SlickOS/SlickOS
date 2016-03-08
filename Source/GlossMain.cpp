@@ -282,7 +282,7 @@ extern "C" void GlossMain(void) {
 
 
     Console::Print("  (5) Initializing Floppy Disk Controller - ");
-    if (false) {
+    if (FDC::Init()) {
         Console::SetForeground(Console::TextColor::Green);
         Console::Print("Successful\n");
         Console::SetForeground(Console::TextColor::LightGray);
@@ -295,14 +295,14 @@ extern "C" void GlossMain(void) {
 
     Console::Print("Hardware Initialized\n");
 
-    // uint8_t *ptr = FDC::ReadSector(0x00);
-    // for (uint64_t i = 0; i < 16; ++i) {
-    //     for (uint64_t j = 0; j < 16; ++j) {
-    //         Console::PrintHex(*ptr++);
-    //         Console::Print(" ");
-    //     }
-    //     // Console::Print("\n");
-    // }
+    uint8_t *ptr = FDC::ReadSector(0x00);
+    for (uint64_t i = 0; i < 16; ++i) {
+        for (uint64_t j = 0; j < 16; ++j) {
+            Console::PrintHex(*ptr++);
+            Console::Print(" ");
+        }
+        // Console::Print("\n");
+    }
 
     // Device::Console::Print("Current Scancode Set: ");
     // uint8_t set = Device::Keyboard::GetScancodeSet();

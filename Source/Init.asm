@@ -20,6 +20,8 @@ BootReal:
     call I8086.IO.Init
     call I8086.IO.Clear
 
+    call I8086.A20.Enable
+
     mov di, 0x3000
     call I8086.Memory.Map
 
