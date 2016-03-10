@@ -1,0 +1,3 @@
+[submodule "Source/Platform"]
+	path = Source/Platform
+	url = git@github.com:SlickOS/Gloss-BootSector.Include
