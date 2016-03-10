@@ -27,7 +27,6 @@
 
 I8086.Storage.Load:
     // First we store the registers that we'll be changing.
-    push ax
     push dx
     push si
     pushf
@@ -37,19 +36,18 @@ I8086.Storage.Load:
     mov bp, sp
 
     // Now we align the stack to the next lowest two-byte boundary.
-    and sp, 0xFFFC
+    and sp, 0xFFFE
 
     // Next we construct the Disk Access Packet. We push the structure onto the
     // stack in reverse order, as the stack grows downward.
-    push word ptr 0x0000
+    push 0x0000
     push dx
     push bx
     push ax
     push es
     push di
     push cx
-    push byte ptr 0x00
-    push byte ptr 0x10
+    push 0x0010
 
     // Now we load the address of the Disk Access Packet and store it in the SI
     // register. We then load the function number and drive number into the AH
@@ -62,13 +60,17 @@ I8086.Storage.Load:
     // will be set, and we will be unable to boot the bootsector.
     int 0x13
 
+    // Now we store the carry flag in the AX register.
+    pushf
+    pop ax
+    // and ax, 0x01
+
     // We finally reset our stack frame, restore state, and return to the
     // calling function.
     leave
     popf
     pop si
     pop dx
-    pop ax
     ret
 
 // vim: set ft=intelasm:
