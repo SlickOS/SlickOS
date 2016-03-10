@@ -9,6 +9,7 @@
 // Arguments:                                                                //
 //   DX,BX,AX - 48 bit disk LBA (High word DX, Middle word BX, Low word AX)  //
 //   ES:DI    - Destination Segment:Offset Pair                              //
+//   SI       - Drive Number                                                 //
 //   CX       - Number of blocks to transfer (Maximum 0x7F on some BIOSes)   //
 // Return:                                                                   //
 //   AX       - Status Code                                                  //
@@ -25,15 +26,49 @@
 .section .text
 
 I8086.Storage.Load:
-    // First, we establish our stack frame.
+    // First we store the registers that we'll be changing.
+    push ax
+    push dx
+    push si
+    pushf
+
+    // Next we establish our stack frame.
     push bp
     mov bp, sp
 
     // Now we align the stack to the next lowest two-byte boundary.
     and sp, 0xFFFC
 
-    
+    // Next we construct the Disk Access Packet. We push the structure onto the
+    // stack in reverse order, as the stack grows downward.
+    push word ptr 0x0000
+    push dx
+    push bx
+    push ax
+    push es
+    push di
+    push cx
+    push byte ptr 0x00
+    push byte ptr 0x10
 
-    // We finally reset our stack frame and return to the calling function.
+    // Now we load the address of the Disk Access Packet and store it in the SI
+    // register. We then load the function number and drive number into the AH
+    // and DL registers, respectively.
+    xchg si, dx
+    mov si, sp
+    mov ah, 0x42
+
+    // Now we execute the interrupt. If the function failed, the carry flag
+    // will be set, and we will be unable to boot the bootsector.
+    int 0x13
+
+    // We finally reset our stack frame, restore state, and return to the
+    // calling function.
     leave
+    popf
+    pop si
+    pop dx
+    pop ax
     ret
+
+// vim: set ft=intelasm:
