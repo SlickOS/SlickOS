@@ -66,8 +66,15 @@ BootReal:
 
         mov [BootBlock.DriveNumber], dl
 
+        mov si, [BootBlock.DriveNumber]
+        mov di, 0x7E00
+        mov ax, 0x0001
+        xor bx, bx
+        xor dx, dx
+        mov cx, 0x10
         call I8086.Storage.Load
-        jc BootReal.Failure
+        test ax, 0x01
+        jnz BootReal.Failure
 
         call I8086.Memory.ClearBSS
         call I8086.IO.Init
@@ -88,7 +95,7 @@ BootReal:
 
 BootReal.Failure:
     mov eax, 0xb8000
-    mov [eax], word ptr 0x4040
+    mov [eax], word ptr 0x4080
     cli
     hlt
 
@@ -102,30 +109,34 @@ I8086.Storage.DiskAccessPacket:
     I8086.Storage.DiskAccessPacket.Block.Low:           .int    0x00000001
     I8086.Storage.DiskAccessPacket.Block.High:          .int    0x00000000
 
-// This function loads the rest of the bootloader from the disk.
-I8086.Storage.Load:
-    // First, we store some state.
-    push ax
-    push dx
-    push si
+// // This function loads the rest of the bootloader from the disk.
+// I8086.Storage.Load:
+//     // First, we store some state.
+//     push ax
+//     push dx
+//     push si
 
-    // Next, we load the Disk Access Packet (DAP) and store it in the SI
-    // register. We then load the function number and drive number into the
-    // AH and DL registers, respectively.
-    mov si, offset I8086.Storage.DiskAccessPacket
-    mov ah, 0x42
-    mov dl, [BootBlock.DriveNumber]
+//     // Next, we load the Disk Access Packet (DAP) and store it in the SI
+//     // register. We then load the function number and drive number into the
+//     // AH and DL registers, respectively.
+//     mov si, offset I8086.Storage.DiskAccessPacket
+//     mov ah, 0x42
+//     mov dl, [BootBlock.DriveNumber]
 
-    // Now we execute the interrupt. If the function failed, the carry flag
-    // will be set, and we will be unable to boot the bootsector.
-    int 0x13
+//     // Now we execute the interrupt. If the function failed, the carry flag
+//     // will be set, and we will be unable to boot the bootsector.
+//     int 0x13
 
-    // Now we restore state and return to the calling function.
-    pop si
-    pop dx
-    pop ax
+//     // Now we restore state and return to the calling function.
+//     pop si
+//     pop dx
+//     pop ax
 
-    ret
+//     ret
+.include "Platform/x86/I8086/Storage/Load.inc"
+
+.org 510
+.word 0xAA55
 
 // This function checks the A20 line status by observing if memory accesses
 // wrap around at 1MiB.
@@ -506,9 +517,6 @@ I8086.A20.Disable:
         // function.
         pop ax
         ret
-
-.org 510
-.word 0xAA55
 
 // This function initializes the first serial port (COM1) at 9600 baud with no
 // parity, one stop bit, and eight data bits.

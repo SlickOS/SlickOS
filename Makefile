@@ -11,6 +11,7 @@
 ###############################################################################
 
 LDFLAGS := -ffreestanding -O2 -nostdlib -lgcc
+ASFLAGS := -I Source
 
 .PHONY: all clean rebuild
 all:
@@ -48,6 +49,7 @@ DEP_CXX := $(addprefix Build/Dependencies/,$(patsubst %.cpp,%.d,$(shell \
 DEP_ASM := $(addprefix Build/Dependencies/,$(patsubst %.asm,%.d,$(shell \
              find -L Source -type f -name '*.asm' | \
              sed 's/Source\///g')))
+INC_ASM := $(shell find -L Source -type f -name '*.inc')
 
 -include $(DEP_C) $(DEP_CXX) $(DEP_ASM)
 
@@ -59,7 +61,7 @@ Build/Objects/%.o: %.cpp Makefile
 	@echo "    Compiling $(<F)   ->   $(@F)"
 	@mkdir -p $(@D)
 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -MT Build/Dependencies/$*.d -c -o $@ $<
-Build/Objects/%.o: %.asm Makefile
+Build/Objects/%.o: %.asm Makefile $(INC_ASM)
 	@echo "    Compiling $(<F)   ->   $(@F)"
 	@mkdir -p $(@D)
 	@$(AS) $(ASFLAGS) -o $@ $<
