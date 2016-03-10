@@ -359,6 +359,10 @@ extern "C" void GlossMain(void) {
                     int val = atoic((char *)tail, head - tail - 1);
                     PIT::Sleep(val);
                 }
+                else if (Memory::Equal(buffer, (const uint8_t *)"keytest", 7)) {
+                    Port::OutputByte(0x64, 0xD2);
+                    Port::OutputByte(0x60, 0x10);
+                }
                 else {
                     Console::Print("Invalid Command. Please Try Again!\n");
                 }
