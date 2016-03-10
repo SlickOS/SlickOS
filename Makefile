@@ -18,7 +18,7 @@ PROJECTS := Gloss Gloss-BootSector.FD Gloss-BootSector.HD
 MAKEFILE += --no-builtin-rules
 .SUFFIXES:
 
-IMAGE := Build/SlickOS.raw Build/SlickOS.img
+IMAGE := Build/SlickOS.img Build/SlickOS.raw
 
 BINARIES := Build/Binaries/Gloss/GLOSS.SYS
 
