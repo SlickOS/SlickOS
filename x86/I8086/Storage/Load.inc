@@ -4,7 +4,7 @@
 // The purpose of this function is to load additional sectors from the disk  //
 // using the BIOS interrupt 0x13 extensions.                                 //
 //                                                                           //
-// Copyright (C) 2015-2016 - Adrian J. Collado        <acollado@citlink.net> //
+// Copyright (C) 2015-2016 - Adrian J. Collado     <acollado@polaritech.net> //
 //                                                                           //
 // Arguments:                                                                //
 //   DX,BX,AX - 48 bit disk LBA (High word DX, Middle word BX, Low word AX)  //
@@ -14,6 +14,8 @@
 // Return:                                                                   //
 //   AX       - Status Code                                                  //
 //===========================================================================//
+.ifndef X86_I8086_STORAGE_LOAD_INC
+.equ X86_I8086_STORAGE_LOAD_INC, 0x01
 
 // Seeing how AT&T assembly syntax is much more verbose than Intel assembly
 // syntax, the assembly language code in this project will use Intel syntax.
@@ -73,4 +75,5 @@ I8086.Storage.Load:
     pop dx
     ret
 
+.endif
 // vim: set ft=intelasm:
