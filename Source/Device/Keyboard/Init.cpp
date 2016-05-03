@@ -12,7 +12,7 @@
 using namespace Device;
 
 bool Keyboard::Init(void) {
-    Buffer_ = (KeyCode *)0x3000000;
+    Buffer_ = (KeyCode *)0x100000;
     Count_ = 0x00;
     Index_ = 0x00;
 
@@ -21,7 +21,7 @@ bool Keyboard::Init(void) {
     // Console::Print("Buffering Input.\n");
     PS2Controller::BufferInput();
     // Console::Print("Setting Scancode Number.\n");
-    Port::OutputByte(0x60, 0x01);
+    Port::OutputByte(0x60, 0x02);
 
     // Console::Print("Buffering Output.\n");
     PS2Controller::BufferOutput();

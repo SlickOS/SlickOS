@@ -36,14 +36,14 @@ AMD64.PIC.DisableIRQ:
         jmp AMD64.PIC.DisableIRQ.Mask
 
     AMD64.PIC.DisableIRQ.Master:
-        mov dl, 0x21
+        mov dx, 0x21
 
     AMD64.PIC.DisableIRQ.Mask:
         in al, dx
         mov bx, 0x01
         mov cx, di
         shl bx, cl
-        and al, bl
+        or al, bl
         out dx, al
 
     pop rdi

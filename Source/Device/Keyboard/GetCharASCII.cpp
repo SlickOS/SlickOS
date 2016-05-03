@@ -11,8 +11,10 @@ uint64_t Keyboard::Count_;
 uint64_t Keyboard::Index_;
 
 uint8_t Keyboard::GetCharASCII(void) {
+    // return 0x00;
     if (Index_ >= Count_) return 0x00;
-    KeyCode key = Buffer_[Index_++];
+    KeyCode key = Buffer_[Index_];
+    Buffer_[Index_++] = KeyCode::Null;
     // Index_ &= (4096 * 100 / sizeof(KeyCode)) - 1;
     // if (key == KeyCode::Null) return 0x00;
     // if (Index_ == Count_ || Index_ == Count_ + 1) return 0x00;

@@ -26,6 +26,9 @@ BootReal:
     call I8086.Memory.Map
 
     call I8086.GDT32.Load
+    
+    cmp byte ptr [BSS.A20.Status], 0x01
+    jne BootReal.Failure
 
     cli
     mov eax, cr0
@@ -33,6 +36,12 @@ BootReal:
     mov cr0, eax
 
     jmp 0x08:BootProtected
+    
+BootReal.Failure:
+    mov eax, 0xb8000
+    mov [eax], word ptr 0x4080
+    cli
+    hlt
 
 .code32
 BootProtected:

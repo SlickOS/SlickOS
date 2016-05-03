@@ -30,28 +30,28 @@ extern "C" void GlossMain(void) {
     Console::Print("Initializing Hardware\n");
 
 
-    Console::Print("  (1) Initializing PIT - ");
-    if (PIT::Init()) {
-        Console::SetForeground(Console::TextColor::Green);
-        Console::Print("Successful\n");
-        Console::SetForeground(Console::TextColor::LightGray);
-    } else {
-        Console::SetForeground(Console::TextColor::Red);
-        Console::Print("Failed\n");
-        Console::SetForeground(Console::TextColor::LightGray);
-    }
-    Console::Print("    * Test 1 (1.000 Seconds) - ");
-    PIT::Sleep(1000);
-    Console::Print("Finished\n");
-    Console::Print("    * Test 2 (0.050 Seconds) - ");
-    PIT::Sleep(50);
-    Console::Print("Finished\n");
-    Console::Print("    * Test 3 (0.500 Seconds) - ");
-    PIT::Sleep(500);
-    Console::Print("Finished\n");
-    Console::Print("    * Test 4 (0.277 Seconds) - ");
-    PIT::Sleep(277);
-    Console::Print("Finished\n");
+    // Console::Print("  (1) Initializing PIT - ");
+    // if (PIT::Init()) {
+    //     Console::SetForeground(Console::TextColor::Green);
+    //     Console::Print("Successful\n");
+    //     Console::SetForeground(Console::TextColor::LightGray);
+    // } else {
+    //     Console::SetForeground(Console::TextColor::Red);
+    //     Console::Print("Failed\n");
+    //     Console::SetForeground(Console::TextColor::LightGray);
+    // }
+    // Console::Print("    * Test 1 (1.000 Seconds) - ");
+    // PIT::Sleep(1000);
+    // Console::Print("Finished\n");
+    // Console::Print("    * Test 2 (0.050 Seconds) - ");
+    // PIT::Sleep(50);
+    // Console::Print("Finished\n");
+    // Console::Print("    * Test 3 (0.500 Seconds) - ");
+    // PIT::Sleep(500);
+    // Console::Print("Finished\n");
+    // Console::Print("    * Test 4 (0.277 Seconds) - ");
+    // PIT::Sleep(277);
+    // Console::Print("Finished\n");
 
 
     Console::Print("  (2) Initializing PS/2 Controller - ");
@@ -77,7 +77,7 @@ extern "C" void GlossMain(void) {
         Console::SetForeground(Console::TextColor::Green);
         Console::Print("Successful\n");
         Console::SetForeground(Console::TextColor::LightGray);
-        Console::Print("    * Connected to channel: Primary\n");
+        Console::Print("    * Connected to Channel: Primary\n");
     } else {
         Console::SetForeground(Console::TextColor::Red);
         Console::Print("Failed\n");
@@ -110,14 +110,18 @@ extern "C" void GlossMain(void) {
 
     Console::Print(" > ");
 
+    char c;
+
     while (true) {
-        char c = Keyboard::GetCharASCII();
+        c = Keyboard::GetCharASCII();
         if (c) {
             if (tail > head) tail = head;
             if (c == 0x08) {
-                head--;
-                if (tail > head) tail = head;
-                Console::PutChar(c);
+                if ((uint64_t)head > 0x4000000) {
+                    head--;
+                    if (tail > head) tail = head;
+                    Console::PutChar(0x08);
+                }
             } else {
                 *head = c;
                 head++;
@@ -149,6 +153,6 @@ extern "C" void GlossMain(void) {
                 Console::Print(" > ");
             }
         }
-        asm volatile("hlt");
+        // asm volatile("hlt");
     }
 }

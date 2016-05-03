@@ -13,12 +13,22 @@ void Keyboard::Handler(uint64_t Error, uint64_t Vector) {
     // Console::Print("In-Handler!\n");
 
     PS2Controller::BufferOutput();
-    uint8_t scancode = Port::InputByte(0x60);
+    uint8_t s0 = Port::InputByte(0x60);
+    
+    // Console::PrintHex(s0);
 
     // Console::PrintHex(scancode);
     // Console::Print("\n");
 
-    KeyCode key = ScancodeSet1[scancode];
+    KeyCode key = Keyboard::ScancodeToKeycode(0x02, s0);
+    if (key == KeyCode::Resend) {
+        uint8_t s1 = Port::InputByte(0x60);
+        key == Keyboard::ScancodeToKeycode(0x02, s0, s1);
+        // Console::PutChar(' ');
+        // Console::PrintHex(s1);
+    }
+    
+    // Console::PutChar('\n');
 
     if (key == KeyCode::Down_LShift || key == KeyCode::Down_RShift) {
         ShiftDown_ = true;
@@ -27,17 +37,17 @@ void Keyboard::Handler(uint64_t Error, uint64_t Vector) {
         ShiftDown_ = false;
     }
     else {
-        if ((uint16_t)(key) < 0x100) {
+        // if ((uint16_t)(key) < 0x100) {
             // if (KeyCode_ == KeyCode::Down_Q) {
                 Buffer_[Count_] = key;
             // }
             // else {
             //     KeyCode_ = KeyCode::Null;
             // }
-        }
-        else {
-            Buffer_[Count_] = KeyCode::Null;
-        }
+        // }
+        // else {
+        //     Buffer_[Count_] = KeyCode::Null;
+        // }
         Count_++;
         // Count_ &= (4096 * 100 / sizeof(KeyCode)) - 1;
     }

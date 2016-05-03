@@ -136,6 +136,8 @@ namespace Device {
             Down_ScrollLock =   0x07E,
             Down_Extended =     0x0FF,
 
+            Resend =            0x100,
+            
             Up_LShift =         0x101,
             Up_RShift =         0x102,
             Up_LCtrl =          0x103,
@@ -530,6 +532,15 @@ namespace Device {
         static KeyCode GetKeycode(void);
         static uint8_t GetCharASCII(void);
         static uint8_t GetScancodeSet(void);
+        
+        static KeyCode ScancodeToKeycode(uint8_t Set, uint8_t S0);
+        static KeyCode ScancodeToKeycode(uint8_t Set, uint8_t S0, uint8_t S1);
+        static KeyCode ScancodeToKeycode(uint8_t Set, uint8_t S0, uint8_t S1, uint8_t S2);
+        static KeyCode ScancodeToKeycode(uint8_t Set, uint8_t S0, uint8_t S1, uint8_t S2, uint8_t S3);
+        static KeyCode ScancodeToKeycode(uint8_t Set, uint8_t S0, uint8_t S1, uint8_t S2, uint8_t S3, uint8_t S4);
+        static KeyCode ScancodeToKeycode(uint8_t Set, uint8_t S0, uint8_t S1, uint8_t S2, uint8_t S3, uint8_t S4, uint8_t S5);
+        static KeyCode ScancodeToKeycode(uint8_t Set, uint8_t S0, uint8_t S1, uint8_t S2, uint8_t S3, uint8_t S4, uint8_t S5, uint8_t S6);
+        static KeyCode ScancodeToKeycode(uint8_t Set, uint8_t S0, uint8_t S1, uint8_t S2, uint8_t S3, uint8_t S4, uint8_t S5, uint8_t S6, uint8_t S7);
     private:
         static bool ShiftDown_;
 

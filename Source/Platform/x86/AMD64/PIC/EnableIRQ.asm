@@ -36,7 +36,7 @@ AMD64.PIC.EnableIRQ:
         jmp AMD64.PIC.EnableIRQ.Mask
 
     AMD64.PIC.EnableIRQ.Master:
-        mov dl, 0x21
+        mov dx, 0x21
 
     AMD64.PIC.EnableIRQ.Mask:
         in al, dx
