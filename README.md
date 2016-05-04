@@ -1,0 +1,1 @@
+# Generic Loader for Operating System Software - GLOSS
