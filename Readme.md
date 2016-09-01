@@ -37,10 +37,20 @@ After cloning the repository, simply run `make toolchain`, followed by `make`, a
 # Goals
 ### Bootloader
 - [ ] ACPI Support
+  - [ ] ACPI Detection
+  - [ ] ACPI Hardware Detection
+  - [ ] AML Interpretation
 - [ ] AHCI Hard Disk Support
 - [X] Hardware Interrupt Handling
-- [ ] Keyboard Support
+- [ ] PS/2 Device Support
+  - [X] Keyboard Support
+  - [ ] Mouse Support
 - [X] Processor Exception Handling
+- [ ] Processor Support
+  - [X] x86-64 Support
+  - [ ] Processor Multicore Detection
+  - [ ] Processor Multicore Initialization
+  - [ ] Processor Model Identification
 - [ ] VGA Support
 
 ### Kernel
