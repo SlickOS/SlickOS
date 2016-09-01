@@ -34,5 +34,23 @@ Currently, Slick OS does not have any pre-built images available for download. F
 
 After cloning the repository, simply run `make toolchain`, followed by `make`, and finally `make install` (if installing to a physical drive), or `make run` (if running through QEMU).
 
+# Goals
+### Bootloader
+- [ ] ACPI Support
+- [ ] AHCI Hard Disk Support
+- [X] Hardware Interrupt Handling
+- [ ] Keyboard Support
+- [X] Processor Exception Handling
+- [ ] VGA Support
+
+### Kernel
+- [ ] Kernel Design Document
+
+### Drivers
+- [ ] Driver Subsystem Design Document
+
+### Applications
+- [ ] Terminal Text Editor Design Document
+
 # Contributing
 If you wish to contribute to the Slick OS repository, simply submit a pull request. Code not following the style of the rest of the project won't be accepted, nor will code without (at the minimum) rudimentary test cases.
