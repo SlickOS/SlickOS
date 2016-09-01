@@ -25,6 +25,7 @@ The current minimum hardware requirements are as follows:
 
 # Software Requirements
 To work with Slick OS, you must have the following software installed on your development machine:
+* Linux-Based OS
 * Git
 * GCC 5
 * GNU Make
