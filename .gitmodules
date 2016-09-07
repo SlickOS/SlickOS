@@ -1,0 +1,9 @@
+[submodule "Gloss"]
+	path = Gloss
+	url = git@github.com:SlickOS/Gloss
+[submodule "Gloss-BootSector.FD"]
+	path = Gloss-BootSector.FD
+	url = git@github.com:SlickOS/Gloss-BootSector.FD
+[submodule "Gloss-BootSector.HD"]
+	path = Gloss-BootSector.HD
+	url = git@github.com:SlickOS/Gloss-BootSector.HD
