@@ -21,10 +21,10 @@ MAKEFILE += --no-builtin-rules
 
 OBJ_INIT := Build/Objects/Init.o
 
-CC := x86_64-elf-gcc-5.3.0
-CXX := x86_64-elf-g++-5.3.0
-LD := x86_64-elf-ld-2.26
-AS := x86_64-elf-as-2.26
+CC := x86_64-elf-gcc-6.2.0
+CXX := x86_64-elf-g++-6.2.0
+LD := x86_64-elf-ld-2.27
+AS := x86_64-elf-as-2.27
 
 vpath
 vpath %.c Source
