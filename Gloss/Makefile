@@ -10,70 +10,77 @@
 # with the source of this project, see http://choosealicense.com/licenses/mit #
 ###############################################################################
 
-LDFLAGS := -ffreestanding -O1 -nostdlib -lgcc
-CXXFLAGS := -std=c++11 -ffreestanding -O1 -Wall -Wextra
-CPPFLAGS := -IInclude
-
-.PHONY: all clean rebuild
+.PHONY: all clean rebuild image run
 all:
+
+PROJECTS := Gloss Boot.Floppy # Boot.HardDisk
 
 MAKEFILE += --no-builtin-rules
 .SUFFIXES:
 
-CC := x86_64-elf-gcc-6.1.0
-CXX := x86_64-elf-g++-6.1.0
-LD := x86_64-elf-ld-2.26
-AS := x86_64-elf-as-2.26
+IMAGE := Build/SlickOS.img # Build/SlickOS.raw
 
-vpath
-vpath %.c Source
-vpath %.cpp Source
-vpath %.asm Source
+BINARIES := Build/Binaries/Gloss/GLOSS.SYS
 
-OBJ_C :=   $(addprefix Build/Objects/,$(patsubst %.c,%.o,$(shell \
-             find -L Source -type f -name '*.c' | \
-             sed 's/Source\///g')))
-OBJ_CXX := $(addprefix Build/Objects/,$(patsubst %.cpp,%.o,$(shell \
-             find -L Source -type f -name '*.cpp' | \
-             sed 's/Source\///g')))
-OBJ_ASM := $(addprefix Build/Objects/,$(patsubst %.asm,%.o,$(shell \
-             find -L Source -type f -name '*.asm' | \
-             sed 's/Source\///g')))
-DEP_C :=   $(addprefix Build/Dependencies/,$(patsubst %.c,%.d,$(shell \
-             find -L Source -type f -name '*.c' | \
-             sed 's/Source\///g')))
-DEP_CXX := $(addprefix Build/Dependencies/,$(patsubst %.cpp,%.d,$(shell \
-             find -L Source -type f -name '*.cpp' | \
-             sed 's/Source\///g')))
-DEP_ASM := $(addprefix Build/Dependencies/,$(patsubst %.asm,%.d,$(shell \
-             find -L Source -type f -name '*.asm' | \
-             sed 's/Source\///g')))
-
--include $(DEP_C) $(DEP_CXX) $(DEP_ASM)
-
-Build/Objects/%.o: %.c Makefile
-	@echo "    Compiling $(<F)   ->   $(@F)"
-	@mkdir -p $(@D)
-	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Dependencies/$*.d -c -o $@ $<
-Build/Objects/%.o: %.cpp Makefile
-	@echo "    Compiling $(<F)   ->   $(@F)"
-	@mkdir -p $(@D)
-	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -MT Build/Dependencies/$*.d -c -o $@ $<
-Build/Objects/%.o: %.asm Makefile
-	@echo "    Compiling $(<F)   ->   $(@F)"
-	@mkdir -p $(@D)
-	@$(AS) $(ASFLAGS) -o $@ $<
-
-Build/GLOSS.SYS: Build/Objects/Init.o $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
-	@echo "    Linking $(@F)"
-	@mkdir -p $(@D)
-	@$(CC) $(LDFLAGS) -o $@ -T Link.ld $^
-
-.PHONY: all
-all: Build/GLOSS.SYS
-	@true
+all: $(PROJECTS) image
+	@echo "Finished Building!"
 
 clean:
-	@rm -rf Build
+	@rm -rf $(addsuffix /Build,$(PROJECTS))
 
 rebuild: clean all
+
+image: $(IMAGE)
+
+Build/SlickOS.img: Build/Binaries/Boot/Floppy/BOOTSECT.BIN
+	@echo "Building Boot Image (Floppy Disk)"
+	@mkdir -p $(@D)
+	@mkdir -p Build/Structure/FD
+	@dd if=/dev/zero of=$@ bs=512 count=2880 status=none
+	@mkfs.msdos -F 12 $@ > /dev/null
+	@dd if=$< of=$@ conv=notrunc bs=512 count=1 status=none
+	@sudo mount -t msdos -o loop,fat=12 $@ Build/Structure/FD
+	@sudo cp $(BINARIES) Build/Structure/FD
+	@sleep .1
+	@sudo umount Build/Structure/FD
+
+#Build/SlickOS.raw: Build/Binaries/Boot/HardDisk/BOOTSECT.BIN
+#	@echo "Building Boot Image (Hard Disk)"
+#	@mkdir -p $(@D)
+#	@mkdir -p Build/Structure/HD
+#	@dd if=/dev/zero of=$@ bs=512 count=256 status=none
+#	@dd if=$< of=$@ conv=notrunc bs=512 count=128 status=none
+#	@sleep .1
+
+run: all
+	@qemu-system-x86_64 -fda Build/SlickOS.img -boot a -m 2G
+#	@/opt/local/util/bin/bochs 'cpu: ips=100000000' 'boot:floppy' 'clock: sync=realtime, time0=utc' 'floppya: 1_44=Build/SlickOS.img, status=inserted' 'magic_break: enabled=1' #'romimage: file=/opt/local/util/share/bochs/bios.bin-1.7.5, address=0xfffc0000' 'vgaromimage: file=/opt/local/util/share/bochs/VGABIOS-lgpl-latest'
+#	/opt/local/util/bin/bochs
+#	bochs
+
+run-hdd: all
+	@qemu-system-x86_64 -hda Build/SlickOS.raw -boot c -m 2G
+
+.PHONY: Boot.Floppy
+Boot.Floppy:
+	@echo "Project: Boot.Floppy"
+	@cd Boot/Floppy && $(MAKE) --no-print-directory
+	@cd ..
+	@mkdir -p Build/Binaries/Boot/Floppy
+	@cp Boot/Floppy/Build/BOOTSECT.BIN Build/Binaries/Boot/Floppy/BOOTSECT.BIN
+
+.PHONY: Gloss
+Gloss:
+	@echo "Project: Gloss"
+	@cd Gloss && $(MAKE) --no-print-directory
+	@cd ..
+	@mkdir -p Build/Binaries/Gloss
+	@cp Gloss/Build/GLOSS.SYS Build/Binaries/Gloss/GLOSS.SYS
+
+#.PHONY: Boot.HardDisk
+#Boot.HardDisk:
+#	@echo "Project: Boot.HardDisk"
+#	@cd Boot/HardDisk && $(MAKE) --no-print-directory
+#	@cd ..
+#	@mkdir -p Build/Binaries/Boot/Floppy
+#	@cp Boot/HardDisk/Build/BOOTSECT.BIN Build/Binaries/Boot/Floppy/BOOTSECT.BIN

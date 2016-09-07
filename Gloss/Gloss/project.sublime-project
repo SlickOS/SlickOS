@@ -5,12 +5,11 @@
             "path": ".",
             "folder_exclude_patterns":
             [
-                "*/Build"
+                "Build"
             ],
             "file_exclude_patterns":
             [
-                ".gitmodules",
-                "*.git"
+                ".git"
             ]
         }
     ]

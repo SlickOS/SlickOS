@@ -1,1 +1,1 @@
-# Generic Loader for Operating System Software - GLOSS
+# System Level Integrated Computer Kernel - SLICK
