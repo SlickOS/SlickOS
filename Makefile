@@ -120,6 +120,11 @@ rebuild: clean all
 .PHONY: image
 image: $(IMAGES)
 
+.PHONY: toolchain
+toolchain:
+	rm -rf Tools/
+	bash Scripts/toolchain.sh
+
 ###############################################################################
 # Rules                                                                       #
 ###############################################################################
