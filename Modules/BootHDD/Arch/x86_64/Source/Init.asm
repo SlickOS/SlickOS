@@ -99,21 +99,586 @@ BootReal.Failure:
     cli
     hlt
 
-.include "Platform/x86/I8086/Storage/Load.inc"
-.include "Platform/x86/I8086/Memory/A20/Check.inc"
-.include "Platform/x86/I8086/Memory/A20/Toggle/BIOS.inc"
-.include "Platform/x86/I8086/Memory/A20/Toggle/Fast.inc"
-.include "Platform/x86/I8086/Memory/A20/Toggle/PS2.inc"
-.include "Platform/x86/I8086/Memory/A20/Toggle.inc"
-.include "Platform/x86/I8086/Memory/A20/Enable.inc"
-.include "Platform/x86/I8086/Memory/A20/Disable.inc"
+I8086.Storage.Load:
+    // First we store the registers that we'll be changing.
+    push dx
+    push si
+    pushf
+
+    // Next we establish our stack frame.
+    push bp
+    mov bp, sp
+
+    // Now we align the stack to the next lowest two-byte boundary.
+    and sp, 0xFFFE
+
+    // Next we construct the Disk Access Packet. We push the structure onto the
+    // stack in reverse order, as the stack grows downward.
+    push 0x0000
+    push dx
+    push bx
+    push ax
+    push es
+    push di
+    push cx
+    push 0x0010
+
+    // Now we load the address of the Disk Access Packet and store it in the SI
+    // register. We then load the function number and drive number into the AH
+    // and DL registers, respectively.
+    xchg si, dx
+    mov si, sp
+    mov ah, 0x42
+
+    // Now we execute the interrupt. If the function failed, the carry flag
+    // will be set, and we will be unable to boot the bootsector.
+    int 0x13
+
+    // Now we store the carry flag in the AX register.
+    pushf
+    pop ax
+    // and ax, 0x01
+
+    // We finally reset our stack frame, restore state, and return to the
+    // calling function.
+    leave
+    popf
+    pop si
+    pop dx
+    ret
 
 .org 510
 .word 0xAA55
 
-.include "Platform/x86/I8086/Memory/Map/E820.inc"
-.include "Platform/x86/I8086/Memory/Map.inc"
-.include "Platform/x86/I8086/Memory/ClearBSS.inc"
+I8086.A20.Toggle.Fast:
+    // This function, while called the Fast A20 method, is actually quite slow
+    // (although it is much faster than enabling the A20 line using the PS/2
+    // keyboard controller), and on some systems is quite dangerous. This
+    // function is the least recommended of all of the functions we use to
+    // toggle the A20 line. What this function does is outputs a value through
+    // system control port 0x92. The problem with this method is that on some
+    // computers it is unsupported, and may do something entirely unexpected
+    // (such as clearing the screen or eating your laundry). Therefore, we
+    // should only use this method if we have no other choice.
+    push ax
+    in al, 0x92
+    xor al, 0x02
+    and al, 0xFE
+    out 0x92, al
+    pop ax
+    ret
+
+I8086.A20.Check:
+    // This function checks the status of the A20 line by observing the effect
+    // of writing a byte value at the edge of the IBM PC's memory span. If the
+    // word wraps around to the start of memory, then the A20 line is disabled.
+    // We start by storing some state.
+    push ax
+    push ds
+    push es
+    push di
+    push si
+
+    // Next we disable interrupts. If memory does wrap around in this function,
+    // then (very) bad things will happen if a CPU interrupt occurs, as the
+    // start of memory on an x86 system is the location of the real mode IVT
+    // (Interrupt Vector Table). If an interrupt occurs, it will attempt to use
+    // the function addresses stored in the table, and if those addresses are
+    // invalid, junk code will execute.
+    cli
+
+    // Next we set two segment registers, the data segment register and the
+    // extra segment register, to 0x0000 and 0xFFFF, respectively. We do this
+    // since we will soon want to access the first byte of memory and the first
+    // byte of memory after 1MiB of total memory.
+    xor ax, ax
+    mov es, ax
+    not ax
+    mov ds, ax
+
+    // Next we set two index registers, the destinatin index register and the
+    // source index register, to 0x0500 and 0x0510, respectively. These
+    // registers have values, when used in the proper segment, refer to
+    // locations exactly 1 MiB apart.
+    mov di, 0x0500
+    mov si, 0x0510
+
+    // We now store the current bytes at our test memory locations. We do this
+    // because, as stated above, we don't want to mess up the real mode IVT. At
+    // this point in the bootloader, we will still need BIOS interrupts.
+    mov al, es:[di]
+    push ax
+    mov al, ds:[si]
+    push ax
+
+    // Now we write two distinct bytes to both memory locations. This allows us
+    // to check to see if, when we wrote the second value, that the first value
+    // was overwritten. If this is the case, then our memory wraps around, and
+    // the A20 line is not enabled. If it doesn't overwrite the first value,
+    // then the A20 line is enabled.
+    mov byte ptr es:[di], 0x00
+    mov byte ptr ds:[si], 0xFF
+    cmp byte ptr es:[di], 0xFF
+
+    // Now we restore the original values that were at the memory locations. We
+    // don't have to worry about corrupting the result of the previous
+    // comparison, as none of the instructions that we execute right now affect
+    // the FLAGS register.
+    pop ax
+    mov ds:[si], al
+    pop ax
+    mov es:[di], al
+
+    // Now we set a status value by using the carry flag. If memory did not
+    // wrap around, then we clear the carry flag. If it did wrap around, then
+    // we set the carry flag.
+    clc
+    je I8086.A20.Check.Exit
+    stc
+
+    I8086.A20.Check.Exit:
+        // Now we can re-enable interrupts, as the real mode IVT was returned
+        // to normal.
+        sti
+
+        // We finally reset all of the registers that we used back to their
+        // previous values and return to the calling function.
+        pop si
+        pop di
+        pop es
+        pop ds
+        pop ax
+        ret
+
+I8086.A20.Disable:
+    // Our A20 line disabling function uses our toggle function in conjunction
+    // with the check function to disable the A20 line for us. The first thing
+    // we do, however, is store some state.
+    push ax
+
+    // Next we check the current A20 line value. We also set the A20 line
+    // status flag in our flags variable to disabled (we will reset it later on
+    // the off chance we cannot disable the A20 line).
+    mov al, [BSS.A20.Status]
+    and al, 0xFE
+    mov [BSS.A20.Status], al
+    call I8086.A20.Check
+    jc I8086.A20.Disable.Exit
+
+    // Now we attempt to toggle the A20 line value.
+    call I8086.A20.Toggle
+    jnc I8086.A20.Disable.Exit
+
+    // If we reach this point, we were unable to disable the A20 line. We thus
+    // set the A20 line value in or flags variable to enabled.
+    mov al, [BSS.A20.Status]
+    or al, 0x01
+    mov [BSS.A20.Status], al
+
+    I8086.A20.Disable.Exit:
+        // The final thing we do is restore state and return ot the calling
+        // function.
+        pop ax
+        ret
+
+I8086.A20.Toggle:
+    // Our A20 line toggle function uses each of our different toggling
+    // functions in conjunction with the check function to toggle the A20 line
+    // for us. The first thing we do, however, is store some state (and clear
+    // the carry flag).
+    clc
+    push ax
+    push bx
+    push cx
+
+    // Next we check the current A20 line value so we can determine what state
+    // the A20 line is in to begin with.
+    call I8086.A20.Check
+    pushf
+    pop bx
+    and bx, 0x01
+
+    // Now we attempt to toggle the A20 line using the BIOS. After trying this
+    // method, we check if the A20 line is toggled using our check function.
+    call I8086.A20.Toggle.BIOS
+    call I8086.A20.Check
+    pushf
+    pop cx
+    and cx, 0x01
+    test cx, bx
+    clc
+    jne I8086.A20.Toggle.Exit
+
+    // If our BIOS function didn't work, we attempt to toggle the A20 line
+    // using the PS/2 controller. It is reasonable to assume that if the BIOS
+    // function failed, then the PS/2 function will succeed. We then check the
+    // A20 line status again, just to make sure.
+    call I8086.A20.Toggle.PS2
+    call I8086.A20.Check
+    pushf
+    pop cx
+    and cx, 0x01
+    test cx, bx
+    clc
+    jne I8086.A20.Toggle.Exit
+
+    // Our last and final hope is to try the Fast A20 method. On Some systems
+    // attempting this method can be extremely bad, but if we reach this point
+    // then we really have nothing to lose. After calling the Fast A20 method,
+    // we once again check the A20 line status.
+    call I8086.A20.Toggle.Fast
+    call I8086.A20.Check
+    pushf
+    pop cx
+    and cx, 0x01
+    test cx, bx
+    clc
+    jne I8086.A20.Toggle.Exit
+
+    // If we reach this point, we could not toggle the A20 line. We thus return
+    // a carry flag as a failure result.
+    stc
+
+    I8086.A20.Toggle.Exit:
+        // The final thing we do is restore pre-function state and return to
+        // the calling function.
+        pop cx
+        pop bx
+        pop ax
+        ret
+
+I8086.A20.Enable:
+    // Our A20 line enabling function uses our toggle function in conjunction
+    // with the check function to enable the A20 line for us. The first thing
+    // we do, however, is store some state.
+    push ax
+
+    // Next we check the current A20 line value. We also set the A20 line
+    // status flag in our flags variable to enabled (we will reset it later on
+    // the off chance we cannot enable the A20 line).
+    mov al, [BSS.A20.Status]
+    or al, 0x01
+    mov [BSS.A20.Status], al
+    call I8086.A20.Check
+    jnc I8086.A20.Enable.Exit
+
+    // Now we attempt to toggle the A20 line value.
+    call I8086.A20.Toggle
+    jnc I8086.A20.Enable.Exit
+
+    // If we reach this point, we were unable to enable the A20 line. We thus
+    // set the A20 line value in our flags variable to disabled.
+    mov al, [BSS.A20.Status]
+    and al, 0xFE
+    mov [BSS.A20.Status], al
+
+    I8086.A20.Enable.Exit:
+        // The final thing we do is restore state and return to the calling
+        // function.
+        pop ax
+        ret
+
+I8086.A20.Toggle.PS2:
+    // Before starting the toggle function, a bit about the 8042 PS/2
+    // controller should be discussed. The 8042 PS/2 controller is the
+    // controller used for the keyboard on IBM PC-AT compatible computers, as
+    // well as the mouse on anything from the IBM PS/2 onward (a second channel
+    // was added to the controller to support a second device). Back when
+    // hardware was limited and the IBM PC was being designed, it was found
+    // that the 8042 chip had an extra pin that wasn't being used. The
+    // designers, in their infinite wisdom, chose that pin for controlling the
+    // the A20 line memory extensions (they also added a method to reset the
+    // entire computer through another pin). Since the x86 architecture is
+    // notorious for backwards compatibility, we can still toggle the A20 line
+    // using the 8042 PS/2 controller.
+
+    // Nowadays, the functions of the 8042 PS/2 controller are integrated into
+    // a device called the AIP (Advanced Integrated Peripheral), and in many
+    // cases, is directly integrated into the motherboard's southbridge. The
+    // methods of using the controller, however, remain the same.
+
+    // When we modify the A20 line, rather than explicitly enabling or
+    // disabling the A20 line, it is actually much easier and provides more
+    // code reusability (and thus saves space in our binary) if we toggle the
+    // current value, as enabling and disabling are virtually the same. When
+    // using this method, the first thing we have to do is store some state and
+    // disable interrupts.
+    push ax
+    cli
+
+    // For this method of toggling the A20 line, we will be performing direct
+    // hardware programming. The first thing we do is disable the first PS/2
+    // port by issuing a command to the PS/2 controller through its command
+    // port 0x64.
+    call I8086.A20.Toggle.PS2.Writable
+    mov al, 0xAD
+    out 0x64, al
+
+    // Next we issue a command to read the PS/2 controller's output port. We do
+    // this by again issuing a command through its command port.
+    call I8086.A20.Toggle.PS2.Writable
+    mov al, 0xD0
+    out 0x64, al
+
+    // Next we read the output port of the PS/2 controller.
+    call I8086.A20.Toggle.PS2.Readable
+    in al, 0x60
+    push ax
+
+    // Now we issue a command to write to the PS/2 controller's output port. We
+    // do this by issuing yet another command through the command ort.
+    call I8086.A20.Toggle.PS2.Writable
+    mov al, 0xD1
+    out 0x64, al
+
+    // Now we write our updated A20 line value to the PS/2 controller's output
+    // port. What we do is toggle the A20 line enabled bit of the PS/2
+    // controller data register that we recieved when we read the byte value
+    // from the PS/2 controller.
+    call I8086.A20.Toggle.PS2.Writable
+    pop ax
+    xor ax, 0x02
+    out 0x60, al
+
+    // Finally, we wait until the PS/2 controller's input buffer is clear, and
+    // then we finally exit (after, of course, re-enabling interrupts and
+    // restoring state.
+    call I8086.A20.Toggle.PS2.Writable
+    sti
+    pop ax
+    ret
+
+    // This sub-function is a simple polling (also known as looping) function
+    // tht just tests if the PS/2 controller's input buffer is clear. When the
+    // input buffer is clear, we are able to send commands or data to the PS/2
+    // controller.
+    I8086.A20.Toggle.PS2.Writable:
+        in al, 0x64
+        test al, 0x02
+        jnz I8086.A20.Toggle.PS2.Writable
+        ret
+
+    // This sub-function is another simple polling function that tests if the
+    // PS/2 controller's output buffer is full. When the buffer is full, we are
+    // able to read data from the PS/2 controller.
+    I8086.A20.Toggle.PS2.Readable:
+        in al, 0x64
+        test al, 0x01
+        jz I8086.A20.Toggle.PS2.Readable
+        ret
+
+I8086.A20.Toggle.BIOS:
+    // The fastest, and arguably the safest (and most modern) method we have to
+    // enable the A20 line is by using the BIOS itself. The nice thing about
+    // this function is that the operation, if supported, almost always works
+    // (due to being tied to the underlying hardware quite closely), and is
+    // supported on most computers since the mid 1990's. Therefore, we use this
+    // method befoe all others, and then if it doesn't work we move onto some
+    // other method. Before proceeding, we store some state.
+    push ax
+    push bx
+
+    // Next we load the function numbers 0x2401 and 0x2402. The second function
+    // queries about the status of the A20 line. The first function is used to
+    // enable the A20 line. Another function, 0x2400, is used to disable the
+    // A20 line. The nice thing about the query function is that it returns a
+    // status code, 0x00 for disabled, and 0x01 for enabled in the AX register.
+    // If we subtract the status code from the register that stores the
+    // function number for enabling the A20 line, we have created a toggle
+    // switch for the A20 line status. If, for example, the A20 line is
+    // enabled, the query function will return 0x01. We can then subtract that
+    // return value from 0x2401, which is the function number for enabling the
+    // A20 line. The result is 0x2400, which is the function for disabling the
+    // A20 line. The process is the same if the query function returns 0x00,
+    // in which case the chosen function will be 0x2401.
+    mov bx, 0x2401
+    mov ax, 0x2402
+
+    // Now we simply call the query interrupt. If the function fails, the carry
+    // flag will be set, allowing us to exit the function gracefully and try
+    // another method.
+    int 0x15
+    jmp I8086.A20.Toggle.BIOS.Exit
+
+    // Now we perform the calculation to get the correct BIOS function to call.
+    // We do this, as stated above, by subtracting the return code from the
+    // function number. We then swap the registers they are stored in so we can
+    // call the correct BIOS function.
+    sub bx, ax
+    xchg bx, ax
+
+    // Then it is just a matter of performing the interrupt. We don't have to
+    // check for a carry flag this time, since if one of the A20 line functions
+    // exists (and succeeds), then all of the A20 line functions exist (and
+    // will succeed). However, we will still want to verify that the A20 line
+    // was actually toggled, in the case of extenuating circumstances.
+    int 0x15
+
+    I8086.A20.Toggle.BIOS.Exit:
+        // We finally restore the pre-function state, and return to the calling
+        // function.
+        pop bx
+        pop ax
+        ret
+
+I8086.Memory.Map:
+    // Currently, the only method we have for building a memory map is by using
+    // the BIOS E820 function to generate one for us. This means that if this
+    // function ends up being unsupported, we won't have a memory map, and thus
+    // must set a status bit in the main bootloader flags. We first start by
+    // storing some state.
+    push di
+
+    // xor ax, ax
+    // mov es, ax
+    mov di, 0x1800
+
+    // Now we call our E820 memory map function.
+    call I8086.Memory.Map.E820
+
+    // We now restore state and return to the calling function.
+    pop di
+
+    ret
+
+I8086.Memory.ClearBSS:
+    // First, we store some state.
+    push ax
+    push cx
+    push di
+    pushf
+
+    // Now we set the size, location, and fill byte. Both the size and location
+    // of the .BSS section are defined by the linker, so these constants are
+    // not located in the current source file. The fill byte is nulled, as we
+    // want fully empty memory.
+    mov cx, SECTION_BSS_SIZE
+    mov di, SECTION_BSS_START
+    xor ax, ax
+
+    // Now we clear the direction flag so we don't write-out the wrong portion
+    // of memory.
+    cld
+
+    // We finally store the nulled byte throughout the entire .BSS section.
+    rep stosb
+
+    // We now restore state and return to the calling function.
+    popf
+    pop di
+    pop cx
+    pop ax
+
+    ret
+
+I8086.Memory.Map.E820:
+    // We first start by storing state.
+    push eax
+    push ebx
+    push ecx
+    push edx
+    push bp
+    push di
+
+    // We now start by setting the function number along with the magic number,
+    // as wellas clearing some registers and setting the destination for our
+    // memory map.
+    xor ebx, ebx
+    xor bp, bp
+    mov edx, 0x534D4150
+    mov eax, 0xE820
+    mov dword ptr es:[di + 0x0014], 0x00000001
+    mov ecx, 0x18
+
+    // Next we call the interrupt and check if it was supported.
+    int 0x15
+    jc I8086.Memory.Map.E820.Failure
+
+    // Now we check the value of the next memory block. A value of zero
+    // indicates that the current block is the last block in the list of E820
+    // memory map entries. Therefore, if it is zero now then our list is only
+    // one entry long and therefore invalid.
+    test ebx, ebx
+    je I8086.Memory.Map.E820.Failure
+
+    // Now we start analyzing the entry to see if it is valid.
+    jmp I8086.Memory.Map.E820.CheckEntry
+
+    I8086.Memory.Map.E820.LoadEntry:
+        // We simply load another entry (the same as above) into our memory
+        // map.
+        mov eax, 0xE820
+        mov dword ptr es:[di + 0x0014], 0x00000001
+        mov ecx, 0x18
+        int 0x15
+
+        // If the carry flag is set then we are at the end of the list.
+        jc I8086.Memory.Map.E820.Finished
+
+        // We now reset the magic number as some BIOSes trash its value.
+        mov edx, 0x534D4150
+
+    I8086.Memory.Map.E820.CheckEntry:
+        // Here, if the size of the resultant buffer is zero, then the memory
+        // entry is garbage and we skip it.
+        jcxz I8086.Memory.Map.E820.SkipEntry
+
+        // Next we check the size of the entry. If it was an ACPI 2 or earlier
+        // response, the size should be 20, and we skip over the ACPI 3 and
+        // later portions of the function.
+        cmp cl, 0x14
+        jbe I8086.Memory.Map.E820.NotExtended
+
+        // Next we check if the entry should be ignored according to ACPI 3. If
+        // it is, we skip the entry.
+        test byte ptr es:[di + 0x0014], 0x00000001
+        je I8086.Memory.Map.E820.SkipEntry
+
+    I8086.Memory.Map.E820.NotExtended:
+        // Now we check whether the length is zero. If any bits are set in the
+        // length value, then the address is valid and we have a complete
+        // entry. Otherwise, we skip the entry.
+        mov ecx, es:[di + 0x0008]
+        or ecx, es:[di + 0x000C]
+        jz I8086.Memory.Map.E820.SkipEntry
+
+        inc bp
+        add di, 0x0018
+
+    I8086.Memory.Map.E820.SkipEntry:
+        // Now we check if we've reached the end of memory blocks.
+        test ebx, ebx
+        jne I8086.Memory.Map.E820.LoadEntry
+
+    I8086.Memory.Map.E820.Finished:
+        // Now we store the number of entries and clear the carry flag for
+        // success.
+        mov [BSS.Memory.Map.Count], bp
+        clc
+
+        // We also store the end of the memory map.
+        mov [BSS.Memory.Map.End], di
+
+        // We now prepare to return.
+        jmp I8086.Memory.Map.E820.Exit
+
+    I8086.Memory.Map.E820.Failure:
+        // Now we set the carry flag for failure.
+        stc
+
+    I8086.Memory.Map.E820.Exit:
+        // We now restore state (and store the address of the memory map).
+        pop di
+        pop bp
+        pop edx
+        pop ecx
+        pop ebx
+        pop eax
+
+        mov [BSS.Memory.Map.Address], di
+
+        // We finally return to the calling function.
+        ret
 
 // This function initializes the first serial port (COM1) at 9600 baud with no
 // parity, one stop bit, and eight data bits.
@@ -410,7 +975,9 @@ BootProtected:
 // the binary.
 .section .data
 
+.global I8086.GDT32
 I8086.GDT32:
+    .global I8086.GDT32.Null
     I8086.GDT32.Null:
         I8086.GDT32.Null.Limit.Low:                     .word   0x0000
         I8086.GDT32.Null.Base.Low:                      .word   0x0000
@@ -418,6 +985,7 @@ I8086.GDT32:
         I8086.GDT32.Null.Access:                        .byte   0x00
         I8086.GDT32.Null.Flags:                         .byte   0x00
         I8086.GDT32.Null.Base.High:                     .byte   0x00
+    .global I8086.GDT32.Code
     I8086.GDT32.Code:
         I8086.GDT32.Code.Limit.Low:                     .word   0xFFFF
         I8086.GDT32.Code.Base.Low:                      .word   0x0000
@@ -425,6 +993,7 @@ I8086.GDT32:
         I8086.GDT32.Code.Access:                        .byte   0x9A
         I8086.GDT32.Code.Flags:                         .byte   0xCF
         I8086.GDT32.Code.Base.High:                     .byte   0x00
+    .global I8086.GDT32.Data
     I8086.GDT32.Data:
         I8086.GDT32.Data.Limit.Low:                     .word   0xFFFF
         I8086.GDT32.Data.Base.Low:                      .word   0x0000
@@ -432,6 +1001,7 @@ I8086.GDT32:
         I8086.GDT32.Data.Access:                        .byte   0x92
         I8086.GDT32.Data.Flags:                         .byte   0xCF
         I8086.GDT32.Data.Base.High:                     .byte   0x00
+    .global I8086.GDT32.Pointer
     I8086.GDT32.Pointer:
 //        .equ I8086.GDT32.Size, (I8086.GDT32.Pointer - I8086.GDT32 - 1)
         I8086.GDT32.Pointer.Limit:                      .word   (I8086.GDT32.Pointer - I8086.GDT32 - 1)
@@ -447,44 +1017,83 @@ Message.ProductName:    .asciz "SLICK OS"
 // of the binary.
 .section .bss
 
+.global BSS.IO.Serial
 BSS.IO.Serial:
+    .global BSS.IO.Serial.Flags
     BSS.IO.Serial.Flags:                                    .skip 0x01, 0x00
+.global BSS.IO.Video
 BSS.IO.Video:
+    .global BSS.IO.Video.Flags
     BSS.IO.Video.Flags:                                     .skip 0x01, 0x00
+    .global BSS.IO.Video.DisplayPage
     BSS.IO.Video.DisplayPage:                               .skip 0x01, 0x00
+    .global BSS.IO.Video.State
     BSS.IO.Video.State:
+        .global BSS.IO.Video.State.StaticTable
         BSS.IO.Video.State.StaticTable:                     .skip 0x04, 0x00
+        .global BSS.IO.Video.State.VideoMode
         BSS.IO.Video.State.VideoMode:                       .skip 0x01, 0x00
+        .global BSS.IO.Video.State.Display.Columns
         BSS.IO.Video.State.Display.Columns:                 .skip 0x02, 0x00
+        .global BSS.IO.Video.State.RegenBuffer.Length
         BSS.IO.Video.State.RegenBuffer.Length:              .skip 0x02, 0x00
+        .global BSS.IO.Video.State.RegenBuffer.Address
         BSS.IO.Video.State.RegenBuffer.Address:             .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Cursor.Page0
         BSS.IO.Video.State.Cursor.Page0:                    .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Cursor.Page1
         BSS.IO.Video.State.Cursor.Page1:                    .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Cursor.Page2
         BSS.IO.Video.State.Cursor.Page2:                    .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Cursor.Page3
         BSS.IO.Video.State.Cursor.Page3:                    .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Cursor.Page4
         BSS.IO.Video.State.Cursor.Page4:                    .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Cursor.Page5
         BSS.IO.Video.State.Cursor.Page5:                    .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Cursor.Page6
         BSS.IO.Video.State.Cursor.Page6:                    .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Cursor.Page7
         BSS.IO.Video.State.Cursor.Page7:                    .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Cursor.Type
         BSS.IO.Video.State.Cursor.Type:                     .skip 0x02, 0x00
+        .global BSS.IO.Video.State.ActiveDisplayPage
         BSS.IO.Video.State.ActiveDisplayPage:               .skip 0x01, 0x00
+        .global BSS.IO.Video.State.CRTCPortAddress
         BSS.IO.Video.State.CRTCPortAddress:                 .skip 0x02, 0x00
+        .global BSS.IO.Video.State.PortSetting.P03x8
         BSS.IO.Video.State.PortSetting.P03x8:               .skip 0x01, 0x00
+        .global BSS.IO.Video.State.PortSetting.P03x9
         BSS.IO.Video.State.PortSetting.P03x9:               .skip 0x01, 0x00
+        .global BSS.IO.Video.State.Display.Rows
         BSS.IO.Video.State.Display.Rows:                    .skip 0x01, 0x00
+        .global BSS.IO.Video.State.BytesPreCharacter
         BSS.IO.Video.State.BytesPerCharacter:               .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Display.Code
         BSS.IO.Video.State.Display.Code:                    .skip 0x01, 0x00
+        .global BSS.IO.Video.State.Display.Code.Alternate
         BSS.IO.Video.State.Display.Code.Alternate:          .skip 0x01, 0x00
+        .global BSS.IO.Video.State.Display.Colors
         BSS.IO.Video.State.Display.Colors:                  .skip 0x02, 0x00
+        .global BSS.IO.Video.State.Display.Pages
         BSS.IO.Video.State.Display.Pages:                   .skip 0x01, 0x00
+        .global BSS.IO.Video.State.Display.ScanLines
         BSS.IO.Video.State.Display.ScanLines:               .skip 0x01, 0x00
+        .global BSS.IO.Video.State.Reserved
         BSS.IO.Video.State.Reserved:                        .skip 0x15, 0x00
+.global BSS.Memory
 BSS.Memory:
+    .global BSS.Memory.Map
     BSS.Memory.Map:
+        .global BSS.Memory.Map.Address
         BSS.Memory.Map.Address:                             .skip 0x08, 0x00
+        .global BSS.Memory.Map.Count
         BSS.Memory.Map.Count:                               .skip 0x08, 0x00
+        .global BSS.Memory.Map.End
         BSS.Memory.Map.End:                                 .skip 0x08, 0x00
+.global BSS.A20
 BSS.A20:
+    .global BSS.A20.Status
     BSS.A20.Status:                                         .skip 0x01, 0x00
 
 // vim: set ft=intelasm:
