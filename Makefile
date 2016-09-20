@@ -192,6 +192,8 @@ Build/Binaries/BootFDD.sys: $(BootFDD_OBJINIT) $(BootFDD_OBJC) $(BootFDD_OBJCXX)
 .PHONY: Gloss
 Gloss: Build/Binaries/Gloss.sys
 
+Gloss_OBJINIT := Build/Arch-Objects/x86_64/Gloss/Init.o
+
 Gloss_CFLAGS :=
 Gloss_CXXFLAGS := -std=c++11 -ffreestanding -O1 -Wall -Wextra
 Gloss_CPPFLAGS := -IModules/Gloss/Include -IModules/Gloss/Arch/x86_64/Include
@@ -229,13 +231,14 @@ Build/Objects/Gloss/%.o: Modules/Gloss/Source/%.cpp Makefile
 Build/Arch-Objects/x86_64/Gloss/%.o: Modules/Gloss/Arch/x86_64/Source/%.cpp Makefile
 	@echo "    Compiling $(<F)   ->   $(@F)"
 	@mkdir -p $(@D)
+	@$(CXX) $(Gloss_CPPFLAGS) $(Gloss_CXXFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/Gloss/$*.d -c -o $@ $<
 
 Build/Arch-Objects/x86_64/Gloss/%.o: Modules/Gloss/Arch/x86_64/Source/%.asm Makefile $(Gloss_INCASM)
 	@echo "    Compiling $(<F)   ->   $(@F)"
 	@mkdir -p $(@D)
 	@$(AS) $(Gloss_ASFLAGS) -o $@ $<
 
-Build/Binaries/Gloss.sys: $(Gloss_OBJC) $(Gloss_OBJCXX) $(Gloss_OBJASM)
+Build/Binaries/Gloss.sys: $(GLOSS_OBJINIT) $(Gloss_OBJC) $(Gloss_OBJCXX) $(Gloss_OBJASM)
 	@echo "    Linking $(@F)"
 	@mkdir -p $(@D)
 	@$(CC) $(Gloss_LDFLAGS) -o $@ -T Modules/Gloss/Link.ld $^
