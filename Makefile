@@ -11,332 +11,337 @@
 ###############################################################################
 # Set the default target
 .PHONY: all
-all: BootHDD
+all: ImageFDD
+
+.PHONY: clean
+clean:
+	@rm -rf $(addsuffix /Build,$(PROJECTS))
+
+.PHONY: rebuild
+rebuild: clean all
 
 # Remove built-in makefile rules & targets, as they may mess up building since
 # we are not using the system toolchain.
 MAKEFILE += --no-builtin-rules
 .SUFFIXES:
 
-###############################################################################
-# Variables                                                                   #
-###############################################################################
-# vpath
-# vpath %.c
-# vpath %.cpp
-# vpath %.asm
-
-# OBJ_C :=
-# OBJ_CXX :=
-# OBJ_ASM :=
-
-# DEP_C :=
-# DEP_CXX :=
-# DEP_ASM :=
-
-# IMAGES :=
-# BINARIES :=
+CC := os-gcc
+CXX := os-g++
+AS := os-as
+LD := os-gcc
 
 ###############################################################################
-# Build Projects                                                              #
+# BootHDD                                                                     #
 ###############################################################################
-# Build the Main Bootloader Module.
-# BINGLOSS := Build/Binary/Gloss/Gloss.sys
-# BINARIES += $(BINGLOSS)
-# $(BINGLOSS): OBJ_C := $(addprefix Build/Objects/Gloss/Gloss/,$(patsubst %.c,%.o,$(shell find -L Gloss/Gloss/Source -type f -name '*.c' | sed 's/Gloss\/Gloss\/Source\///g')))
-# $(BINGLOSS): OBJ_CXX := $(addprefix Build/Objects/Gloss/Gloss/,$(patsubst %.cpp,%.o,$(shell find -L Gloss/Gloss/Source -type f -name '*.cpp' | sed 's/Gloss\/Gloss\/Source\///g')))
-# $(BINGLOSS): OBJ_ASM := $(addprefix Build/Objects/Gloss/Gloss/,$(patsubst %.asm,%.o,$(shell find -L Gloss/Gloss/Source -type f -name '*.asm' | sed 's/Gloss\/Gloss\/Source\///g')))
-# $(BINGLOSS): $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
-# 	@echo "    Linking $(@F)"
-# 	@mkdir -p $(@D)
-# 	@$(CC) $(LDFLAGS) -o $@ -T Link.ld $^
+# .PHONY: BootHDD
+# BootHDD: Build/Binaries/BootHDD.sys
 
-# # Build the Floppy Disk Boot Sector.
-# BINFLOPPY := Build/Binary/Gloss/Floppy.sys
-# BINARIES += $(BINFLOPPY)
-# $(BINFLOPPY): OBJ_C := $(addprefix Build/Objects/Gloss/Floppy/,$(patsubst %.c,%.o,$(shell find -L Gloss/Boot/Floppy/Source -type f -name '*.c' | sed 's/Gloss\/Boot\/Floppy\/Source\///g')))
-# $(BINFLOPPY): OBJ_CXX := $(addprefix Build/Objects/Gloss/Floppy/,$(patsubst %.cpp,%.o,$(shell find -L Gloss/Boot/Floppy/Source -type f -name '*.cpp' | sed 's/Gloss\/Boot\/Floppy\/Source\///g')))
-# $(BINFLOPPY): OBJ_ASM := $(addprefix Build/Objects/Gloss/Floppy/,$(patsubst %.asm,%.o,$(shell find -L Gloss/Boot/Floppy/Source -type f -name '*.asm' | sed 's/Gloss\/Boot\/Floppy\/Source\///g')))
-# $(BINFLOPPY): $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
-# 	@echo "    Linking $(@F)"
-# 	@mkdir -p $(@D)
-# 	@$(CC) $(LDFLAGS) -o $@ -T Link.ld $^
+# BootHDD_OBJINIT := Build/Arch-Objects/x86_64/BootHDD/Init.o
 
-# # Build the Hard Disk Boot Sector.
-# BINHARDDISK := Build/Binary/Gloss/HardDisk.sys
-# BINARIES += $(BINHARDDISK)
-# $(BINHARDDISK): OBJ_C := $(addprefix Build/Objects/Gloss/HardDisk/,$(patsubst %.c,%.o,$(shell find -L Gloss/Boot/HardDisk/Source -type f -name '*.c' | sed 's/Gloss\/Boot\/HardDisk\/Source\///g')))
-# $(BINHARDDISK): OBJ_CXX := $(addprefix Build/Objects/Gloss/HardDisk/,$(patsubst %.cpp,%.o,$(shell find -L Gloss/Boot/HardDisk/Source -type f -name '*.cpp' | sed 's/Gloss\/Boot\/HardDisk\/Source\///g')))
-# $(BINHARDDISK): OBJ_ASM := $(addprefix Build/Objects/Gloss/HardDisk/,$(patsubst %.asm,%.o,$(shell find -L Gloss/Boot/HardDisk/Source -type f -name '*.asm' | sed 's/Gloss\/Boot\/HardDisk\/Source\///g')))
-# $(BINHARDDISK): $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
-# 	@echo "    Linking $(@F)"
-# 	@mkdir -p $(@D)
-# 	@$(CC) $(LDFLAGS) -o $@ -T Link.ld $^
+# BootHDD_OBJC := $(addprefix Build/Objects/BootHDD/,$(patsubst %.c,%.o,$(shell find -L Modules/BootHDD/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Source\///g')))
+# BootHDD_OBJC += $(addprefix Build/Arch-Objects/x86_64/BootHDD/,$(patsubst %.c,%.o,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
+# BootHDD_OBJCXX := $(addprefix Build/Objects/BootHDD/,$(patsubst %.cpp,%.o,$(shell find -L Modules/BootHDD/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Source\///g')))
+# BootHDD_OBJCXX += $(addprefix Build/Arch-Objects/x86_64/BootHDD/,$(patsubst %.cpp,%.o,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
 
-# Build the CD Boot Sector.
-# BINELTORITO := Build/Binary/Gloss/ElTorito.sys
-# BINARIES += $(BINELTORITO)
-# $(BINELTORITO): OBJ_C := $(addprefix Build/Objects/,$(patsubst %.c,%.o,$(shell find -L Gloss/Boot/ElTorito/Source -type f -name '*.c' | sed 's/Gloss\/Boot\/ElTorito\/Source\///g')))
-# $(BINELTORITO): OBJ_CXX := $(addprefix Build/Objects/,$(patsubst %.cpp,%.o,$(shell find -L Gloss/Boot/ElTorito/Source -type f -name '*.cpp' | sed 's/Gloss\/Boot\/ElTorito\/Source\///g')))
-# $(BINELTORITO): OBJ_ASM := $(addprefix Build/Objects/,$(patsubst %.asm,%.o,$(shell find -L Gloss/Boot/ElTorito/Source -type f -name '*.asm' | sed 's/Gloss\/Boot\/ElTorito\/Source\///g')))
-# $(BINELTORITO): $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
+# BootHDD_OBJASM := $(addprefix Build/Arch-Objects/x86_64/BootHDD/,$(patsubst %.asm,%.o,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.asm' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
+# BootHDD_INCASM := $(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.inc')
 
-# Build the Kernel.
-# BINKERNEL := Build/Binary/Slick/Slick.sys
-# BINARIES += $(BINKERNEL)
-# $(BINKERNEL): OBJ_C := $(addprefix Build/Objects/,$(patsubst %.c,%.o,$(shell find -L Kernel/Source -type f -name '*.c' | sed 's/Kernel\/Source\///g')))
-# $(BINKERNEL): OBJ_CXX := $(addprefix Build/Objects/,$(patsubst %.cpp,%.o,$(shell find -L Kernel/Source -type f -name '*.cpp' | sed 's/Kernel\/Source\///g')))
-# $(BINKERNEL): OBJ_ASM := $(addprefix Build/Objects/,$(patsubst %.asm,%.o,$(shell find -L Kernel/Source -type f -name '*.asm' | sed 's/Kernel\/Source\///g')))
-# $(BINKERNEL): $(OBJ_C) $(OBJ_CXX) $(OBJ_ASM)
+# BootHDD_DEPC := $(addprefix Build/Dependencies/BootHDD/,$(patsubst %.c,%.d,$(shell find -L Modules/BootHDD/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Source\///g')))
+# BootHDD_DEPC += $(addprefix Build/Arch-Dependencies/x86_64/BootHDD/,$(patsubst %.c,%.d,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
+# BootHDD_DEPCXX := $(addprefix Build/Dependencies/BootHDD/,$(patsubst %.cpp,%.d,$(shell find -L Modules/BootHDD/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Source\///g')))
+# BootHDD_DEPCXX += $(addprefix Build/Arch-Dependencies/x86_64/BootHDD/,$(patsubst %.cpp,%.d,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
 
-###############################################################################
-# Build Images                                                                #
-###############################################################################
-# Build a Floppy Disk Image.
-# IMAGES += Build/SlickOS.img
-# Build/SlickOS.img:
+# -include $(BootHDD_DEPC) $(BootHDD_DEPCXX)
 
-# # Build a Hard Disk Image.
-# IMAGES += Build/SlickOS.raw
-# Build/SlickOS.raw:
-
-# # Build a CD Image.
-# IMAGES += Build/SlickOS.iso
-# Build/SlickOS.iso:
-
-###############################################################################
-# Main Targets                                                                #
-###############################################################################
-# .PHONY: all
-# all: $(BINARIES)
-
-# .PHONY: clean
-# clean:
-# 	@rm -rf $(addsuffix /Build,$(PROJECTS))
-
-# .PHONY: rebuild
-# rebuild: clean all
-
-# .PHONY: image
-# image: $(IMAGES)
-
-.PHONY: toolchain
-toolchain:
-	rm -rf Tools/
-	bash Scripts/toolchain.sh
-
-###############################################################################
-# Rules                                                                       #
-###############################################################################
-# Build/Objects/%.o: %.c Makefile
+# Build/Objects/BootHDD/%.o: Modules/BootHDD/Source/%.c Makefile
 # 	@echo "    Compiling $(<F)   ->   $(@F)"
 # 	@mkdir -p $(@D)
-# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -c -o $@ $<
-# Build/Objects/%.o: %.cpp Makefile
+# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Dependencies/BootHDD/$*.d -c -o $@ $<
+# Build/Arch-Objects/x86_64/BootHDD/%.o: Modules/BootHDD/Arch/x86_64/Source/%.c Makefile
 # 	@echo "    Compiling $(<F)   ->   $(@F)"
 # 	@mkdir -p $(@D)
-# 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c -o $@ $<
-# Build/Objects/%.o: %.asm Makefile
+# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/BootHDD/$*.d -c -o $@ $<
+
+# Build/Objects/BootHDD/%.o: Modules/BootHDD/Source/%.cpp Makefile
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -MT Build/Dependencies/BootHDD/$*.d -c -o $@ $<
+# Build/Arch-Objects/x86_64/BootHDD/%.o: Modules/BootHDD/Arch/x86_64/Source/%.cpp Makefile
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+
+# Build/Arch-Objects/x86_64/BootHDD/%.o: Modules/BootHDD/Arch/x86_64/Source/%.asm Makefile $(BootHDD_INCASM)
 # 	@echo "    Compiling $(<F)   ->   $(@F)"
 # 	@mkdir -p $(@D)
 # 	@$(AS) $(ASFLAGS) -o $@ $<
 
+# Build/Binaries/BootHDD.sys: $(BootHDD_OBJINIT) $(BootHDD_OBJC) $(BootHDD_OBJCXX) $(BootHDD_OBJASM)
+# 	@echo "    Linking $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(CC) $(LDFLAGS) -o $@ -T Modules/BootHDD/Link.ld $^
+
 ###############################################################################
-# Build A Project                                                             #
+# BootFDD                                                                     #
 ###############################################################################
+.PHONY: BootFDD
+BootFDD: Build/Binaries/BootFDD.sys
 
-define ClearVariables
-SRC_C :=
-SRC_CXX :=
-SRC_ASM :=
-OBJ_C :=
-OBJ_CXX :=
-OBJ_ASM :=
-DEP_C :=
-DEP_CXX :=
-endef
+BootFDD_CFLAGS :=
+BootFDD_CXXFLAGS :=
+BootFDD_CPPFLAGS :=
+BootFDD_ASFLAGS := -I Modules/BootFDD/Arch/x86_64/Source
+BootFDD_LDFLAGS := -ffreestanding -O2 -nostdlib -lgcc
 
-define DefineLink
-Build/Binaries/$(1): $$(OBJ_C) $$(OBJ_CXX) $$(OBJ_C_$(2)) $$(OBJ_CXX_$(2)) $$(OBJ_ASM_$(2))
-	@echo "    Linking $$(@F)"
-	@mkdir -p $$(@D)
-	@Tools/bin/$(2)-elf-$$(CC) $$(LDFLAGS) -o $$@ -T Modules/$(1)/Link.ld $$^
-endef
+BootFDD_OBJINIT := Build/Arch-Objects/x86_64/BootFDD/Init.o
 
-# 1.) Project Name
-# 2.) Architecture
-define DefineRulesArch
-Build/$(1)/Arch/$(2)/%.o: Modules/$(1)/Arch/$(2)/Source/%.c
-	@echo "    Compiling $$(<F)   ->   $$(@F)"
-	@mkdir -p $$(@D)
-	@Tools/bin/$(2)-elf-$$(CC) $$(CPPFLAGS) $$(CFLAGS) -c -o $$@ $$<
-Build/$(1)/Arch/$(2)/%.o: Modules/$(1)/Arch/$(2)/Source/%.cpp
-	@echo "    Compiling $$(<F)   ->   $$(@F)"
-	@mkdir -p $$(@D)
-	@Tools/bin/$(2)-elf-$$(CXX) $$(CPPFLAGS) $$(CXXFLAGS) -c -o $$@ $$<
-Build/$(1)/Arch/$(2)/%.o: Modules/$(1)/Arch/$(2)/Source/%.asm
-	@echo "    Compiling $$(<F)   ->   $$(@F)"
-	@mkdir -p $$(@D)
-	@Tools/bin/$(2)-elf-$$(AS) $$(ASFLAGS) -c -o $$@ $$<
-endef
+BootFDD_OBJC := $(addprefix Build/Objects/BootFDD/,$(patsubst %.c,%.o,$(shell find -L Modules/BootFDD/Source -type f -name '*.c' | sed 's/Modules\/BootFDD\/Source\///g')))
+BootFDD_OBJC += $(addprefix Build/Arch-Objects/x86_64/BootFDD/,$(patsubst %.c,%.o,$(shell find -L Modules/BootFDD/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/BootFDD\/Arch\/x86_64\/Source\///g')))
+BootFDD_OBJCXX := $(addprefix Build/Objects/BootFDD/,$(patsubst %.cpp,%.o,$(shell find -L Modules/BootFDD/Source -type f -name '*.cpp' | sed 's/Modules\/BootFDD\/Source\///g')))
+BootFDD_OBJCXX += $(addprefix Build/Arch-Objects/x86_64/BootFDD/,$(patsubst %.cpp,%.o,$(shell find -L Modules/BootFDD/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/BootFDD\/Arch\/x86_64\/Source\///g')))
 
-# 1.) Project Name
-define DefineRules
-Build/$(1)/%.o: Modules/$(1)/Source/%.c
-	@echo "    Compiling $$(<F)   ->   $$(@F)"
-	@mkdir -p $$(@D)
-	@Tools/bin/$$(CC) $$(CPPFLAGS) $$(CFLAGS) -c -o $$@ $$<
-Build/$(1)/%.o: Modules/$(1)/Source/%.cpp
-	@echo "    Compiling $$(<F)   ->   $$(@F)"
-	@mkdir -p $$(@D)
-	@Tools/bin/$$(CXX) $$(CPPFLAGS) $$(CFLAGS) -c -o $$@ $$<
-endef
+BootFDD_OBJASM := $(addprefix Build/Arch-Objects/x86_64/BootFDD/,$(patsubst %.asm,%.o,$(shell find -L Modules/BootFDD/Arch/x86_64/Source -type f -name '*.asm' | sed 's/Modules\/BootFDD\/Arch\/x86_64\/Source\///g')))
+BootFDD_INCASM := $(shell find -L Modules/BootFDD/Arch/x86_64/Source -type f -name '*.inc')
 
-# 1.) Project Name
-# 2.) Architecture
-define DefineSourcesArch
-SRC_C_$(2) += $$(shell if [ -d "Modules/$(1)/Arch/$(2)/Source" ]; then find -L Modules/$(1)/Arch/$(2)/Source -type f -name '*.c'; fi)
-SRC_CXX_$(2) += $$(shell if [ -d "Modules/$(1)/Arch/$(2)/Source" ]; then find -L Modules/$(1)/Arch/$(2)/Source -type f -name '*.cpp'; fi)
-SRC_ASM_$(2) += $$(shell if [ -d "Modules/$(1)/Arch/$(2)/Source" ]; then find -L Modules/$(1)/Arch/$(2)/Source -type f -name '*.asm'; fi)
-endef
+BootFDD_DEPC := $(addprefix Build/Dependencies/BootFDD/,$(patsubst %.c,%.d,$(shell find -L Modules/BootFDD/Source -type f -name '*.c' | sed 's/Modules\/BootFDD\/Source\///g')))
+BootFDD_DEPC += $(addprefix Build/Arch-Dependencies/x86_64/BootFDD/,$(patsubst %.c,%.d,$(shell find -L Modules/BootFDD/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/BootFDD\/Arch\/x86_64\/Source\///g')))
+BootFDD_DEPCXX := $(addprefix Build/Dependencies/BootFDD/,$(patsubst %.cpp,%.d,$(shell find -L Modules/BootFDD/Source -type f -name '*.cpp' | sed 's/Modules\/BootFDD\/Source\///g')))
+BootFDD_DEPCXX += $(addprefix Build/Arch-Dependencies/x86_64/BootFDD/,$(patsubst %.cpp,%.d,$(shell find -L Modules/BootFDD/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/BootFDD\/Arch\/x86_64\/Source\///g')))
 
-# 1.) Project Name
-# 2.) Architecture
-define DefineObjectsArch
-OBJ_C_$(2) += $$(patsubst %.c,%.o,$$(shell echo $$(SRC_C_$(2)) | sed 's/Modules\/$(1)\/Arch\/$(2)\/Source\//Build\/$(1)\/Arch\/$(2)\//g'))
-OBJ_CXX_$(2) += $$(patsubst %.cpp,%.o,$$(shell echo $$(SRC_CXX_$(2)) | sed 's/Modules\/$(1)\/Arch\/$(2)\/Source\//Build\/$(1)\/Arch\/$(2)\//g'))
-OBJ_ASM_$(2) += $$(patsubst %.asm,%.o,$$(shell echo $$(SRC_ASM_$(2)) | sed 's/Modules\/$(1)\/Arch\/$(2)\/Source\//Build\/$(1)\/Arch\/$(2)\//g'))
-endef
+-include $(BootFDD_DEPC) $(BootFDD_DEPCXX)
 
-# 1.) Project Name
-define DefineSources
-SRC_C += $$(shell if [ -d "Modules/$(1)/Source" ]; then find -L Modules/$(1)/Source -type f -name '*.c'; fi)
-SRC_CXX += $$(shell if [ -d "Modules/$(1)/Source" ]; then find -L Modules/$(1)/Source -type f -name '*.cpp'; fi)
-endef
+Build/Objects/BootFDD/%.o: Modules/BootFDD/Source/%.c Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(CC) $(BootFDD_CPPFLAGS) $(BootFDD_CFLAGS) -MMD -MP -MT Build/Dependencies/BootFDD/$*.d -c -o $@ $<
+Build/Arch-Objects/x86_64/BootFDD/%.o: Modules/BootFDD/Arch/x86_64/Source/%.c Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(CC) $(BootFDD_CPPFLAGS) $(BootFDD_CFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/BootFDD/$*.d -c -o $@ $<
 
-# 1.) Project Name
-define DefineObjects
-OBJ_C += $$(patsubst %.c,%.o,$$(shell echo $$(SRC_C) | sed 's/Modules\/$(1)\/Source\//Build\/$(1)\//g'))
-OBJ_CXX += $$(patsubst %.cpp,%.o,$$(shell echo $$(SRC_CXX) | sed 's/Modules\/$(1)\/Source\//Build\/$(1)\//g'))
-endef
+Build/Objects/BootFDD/%.o: Modules/BootFDD/Source/%.cpp Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(CXX) $(BootFDD_CPPFLAGS) $(BootFDD_CXXFLAGS) -MMD -MP -MT Build/Dependencies/BootFDD/$*.d -c -o $@ $<
+Build/Arch-Objects/x86_64/BootFDD/%.o: Modules/BootFDD/Arch/x86_64/Source/%.cpp Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
 
-# 1.) Project Name
-# 2.) Architecture
-define DefineModuleArch
-$$(info $(1) ($(2)))
-$$(eval $$(call DefineSources,$(1)))
-$$(eval $$(call DefineObjects,$(1)))
-$$(eval $$(call DefineSourcesArch,$(1),$(2)))
-$$(eval $$(call DefineObjectsArch,$(1),$(2)))
-$$(eval $$(call DefineRules,$(1)))
-$$(eval $$(call DefineRulesArch,$(1),$(2)))
-$$(eval $$(call DefineLink,$(1),$(2)))
+Build/Arch-Objects/x86_64/BootFDD/%.o: Modules/BootFDD/Arch/x86_64/Source/%.asm Makefile $(BootFDD_INCASM)
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(AS) $(BootFDD_ASFLAGS) -o $@ $<
 
-# $$(info - SRC_C- $$(SRC_C))
-# $$(info - SRC_CXX- $$(SRC_CXX))
-# $$(info - SRC_C_$(2)- $$(SRC_C_$(2)))
-# $$(info - SRC_CXX_$(2)- $$(SRC_CXX_$(2)))
-# $$(info - SRC_ASM_$(2)- $$(SRC_ASM_$(2)))
+Build/Binaries/BootFDD.sys: $(BootFDD_OBJINIT) $(BootFDD_OBJC) $(BootFDD_OBJCXX) $(BootFDD_OBJASM)
+	@echo "    Linking $(@F)"
+	@mkdir -p $(@D)
+	@$(CC) $(BootFDD_LDFLAGS) -o $@ -T Modules/BootFDD/Link.ld $^
 
-# $$(info - OBJ_C- $$(OBJ_C))
-# $$(info - OBJ_CXX- $$(OBJ_CXX))
-# $$(info - OBJ_C_$(2)- $$(OBJ_C_$(2)))
-# $$(info - OBJ_CXX_$(2)- $$(OBJ_CXX_$(2)))
-# $$(info - OBJ_ASM_$(2)- $$(OBJ_ASM_$(2)))
-endef
+###############################################################################
+# BootISO                                                                     #
+###############################################################################
+# .PHONY: BootISO
+# BootISO: Build/Binaries/BootISO.sys
 
-# 1.) Project Name
-# 2.) Project Directory
-define DefineModule
-include Modules/$(1)/Project.mk
-$$(foreach target,$$(TARGETS), $$(eval $$(call DefineModuleArch,$(1),$$(target))))
-.PHONY: $(1)
-$(1): Build/Binaries/$(1)
-endef
+# BootISO_OBJINIT := Build/Arch-Objects/x86_64/BootISO/Init.o
 
-$(eval $(call DefineModule,BootHDD))
-# $(eval $(call DefineModule,Gloss))
+# BootISO_OBJC := $(addprefix Build/Objects/BootISO/,$(patsubst %.c,%.o,$(shell find -L Modules/BootISO/Source -type f -name '*.c' | sed 's/Modules\/BootISO\/Source\///g')))
+# BootISO_OBJC += $(addprefix Build/Arch-Objects/x86_64/BootISO/,$(patsubst %.c,%.o,$(shell find -L Modules/BootISO/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/BootISO\/Arch\/x86_64\/Source\///g')))
+# BootISO_OBJCXX := $(addprefix Build/Objects/BootISO/,$(patsubst %.cpp,%.o,$(shell find -L Modules/BootISO/Source -type f -name '*.cpp' | sed 's/Modules\/BootISO\/Source\///g')))
+# BootISO_OBJCXX += $(addprefix Build/Arch-Objects/x86_64/BootISO/,$(patsubst %.cpp,%.o,$(shell find -L Modules/BootISO/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/BootISO\/Arch\/x86_64\/Source\///g')))
 
+# BootISO_OBJASM := $(addprefix Build/Arch-Objects/x86_64/BootISO/,$(patsubst %.asm,%.o,$(shell find -L Modules/BootISO/Arch/x86_64/Source -type f -name '*.asm' | sed 's/Modules\/BootISO\/Arch\/x86_64\/Source\///g')))
+# BootISO_INCASM := $(shell find -L Modules/BootISO/Arch/x86_64/Source -type f -name '*.inc')
 
-# .PHONY: all run
-# all:
+# BootISO_DEPC := $(addprefix Build/Dependencies/BootISO/,$(patsubst %.c,%.d,$(shell find -L Modules/BootISO/Source -type f -name '*.c' | sed 's/Modules\/BootISO\/Source\///g')))
+# BootISO_DEPC += $(addprefix Build/Arch-Dependencies/x86_64/BootISO/,$(patsubst %.c,%.d,$(shell find -L Modules/BootISO/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/BootISO\/Arch\/x86_64\/Source\///g')))
+# BootISO_DEPCXX := $(addprefix Build/Dependencies/BootISO/,$(patsubst %.cpp,%.d,$(shell find -L Modules/BootISO/Source -type f -name '*.cpp' | sed 's/Modules\/BootISO\/Source\///g')))
+# BootISO_DEPCXX += $(addprefix Build/Arch-Dependencies/x86_64/BootISO/,$(patsubst %.cpp,%.d,$(shell find -L Modules/BootISO/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/BootISO\/Arch\/x86_64\/Source\///g')))
 
-# # Remove built-in makefile rules & targets, as they may mess up building
-# # since we are not using the system compiler.
-# MAKEFILE += --no-builtin-rules
-# .SUFFIXES:
+# -include $(BootISO_DEPC) $(BootISO_DEPCXX)
 
-# # This lists all of the subprojects of Slick OS
-# PROJECTS := Gloss GlossBoot.Floppy GlossBoot.HardDisk
+# Build/Objects/BootISO/%.o: Modules/BootISO/Source/%.c Makefile
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Dependencies/BootISO/$*.d -c -o $@ $<
+# Build/Arch-Objects/x86_64/BootISO/%.o: Modules/BootISO/Arch/x86_64/Source/%.c Makefile
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/BootISO/$*.d -c -o $@ $<
 
-# # This lists the disk images to make
-# IMAGE := Build/SlickOS.img Build/SlickOS.raw
+# Build/Objects/BootISO/%.o: Modules/BootISO/Source/%.cpp Makefile
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -MT Build/Dependencies/BootISO/$*.d -c -o $@ $<
+# Build/Arch-Objects/x86_64/BootISO/%.o: Modules/BootISO/Arch/x86_64/Source/%.cpp Makefile
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
 
-# # This lists the binaries to build
-# BINARIES := Build/Binaries/Gloss/GLOSS.SYS
+# Build/Arch-Objects/x86_64/BootISO/%.o: Modules/BootISO/Arch/x86_64/Source/%.asm Makefile $(BootISO_INCASM)
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(AS) $(ASFLAGS) -o $@ $<
+
+# Build/Binaries/BootISO.sys: $(BootISO_OBJINIT) $(BootISO_OBJC) $(BootISO_OBJCXX) $(BootISO_OBJASM)
+# 	@echo "    Linking $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(CC) $(LDFLAGS) -o $@ -T Modules/BootISO/Link.ld $^
+
+###############################################################################
+# Gloss                                                                       #
+###############################################################################
+.PHONY: Gloss
+Gloss: Build/Binaries/Gloss.sys
+
+Gloss_OBJINIT := Build/Arch-Objects/x86_64/Gloss/Init.o
+
+Gloss_CFLAGS :=
+Gloss_CXXFLAGS := -std=c++11 -ffreestanding -O1 -Wall -Wextra
+Gloss_CPPFLAGS := -IModules/Gloss/Include -IModules/Gloss/Arch/x86_64/Include
+Gloss_ASFLAGS :=
+Gloss_LDFLAGS := -ffreestanding -O2 -nostdlib -lgcc
+
+Gloss_OBJC := $(addprefix Build/Objects/Gloss/,$(patsubst %.c,%.o,$(shell find -L Modules/Gloss/Source -type f -name '*.c' | sed 's/Modules\/Gloss\/Source\///g')))
+Gloss_OBJC += $(addprefix Build/Arch-Objects/x86_64/Gloss/,$(patsubst %.c,%.o,$(shell find -L Modules/Gloss/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/Gloss\/Arch\/x86_64\/Source\///g')))
+Gloss_OBJCXX := $(addprefix Build/Objects/Gloss/,$(patsubst %.cpp,%.o,$(shell find -L Modules/Gloss/Source -type f -name '*.cpp' | sed 's/Modules\/Gloss\/Source\///g')))
+Gloss_OBJCXX += $(addprefix Build/Arch-Objects/x86_64/Gloss/,$(patsubst %.cpp,%.o,$(shell find -L Modules/Gloss/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/Gloss\/Arch\/x86_64\/Source\///g')))
+
+Gloss_OBJASM := $(addprefix Build/Arch-Objects/x86_64/Gloss/,$(patsubst %.asm,%.o,$(shell find -L Modules/Gloss/Arch/x86_64/Source -type f -name '*.asm' | sed 's/Modules\/Gloss\/Arch\/x86_64\/Source\///g')))
+Gloss_INCASM := $(shell find -L Modules/Gloss/Arch/x86_64/Source -type f -name '*.inc')
+
+Gloss_DEPC := $(addprefix Build/Dependencies/Gloss/,$(patsubst %.c,%.d,$(shell find -L Modules/Gloss/Source -type f -name '*.c' | sed 's/Modules\/Gloss\/Source\///g')))
+Gloss_DEPC += $(addprefix Build/Arch-Dependencies/x86_64/Gloss/,$(patsubst %.c,%.d,$(shell find -L Modules/Gloss/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/Gloss\/Arch\/x86_64\/Source\///g')))
+Gloss_DEPCXX := $(addprefix Build/Dependencies/Gloss/,$(patsubst %.cpp,%.d,$(shell find -L Modules/Gloss/Source -type f -name '*.cpp' | sed 's/Modules\/Gloss\/Source\///g')))
+Gloss_DEPCXX += $(addprefix Build/Arch-Dependencies/x86_64/Gloss/,$(patsubst %.cpp,%.d,$(shell find -L Modules/Gloss/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/Gloss\/Arch\/x86_64\/Source\///g')))
+
+-include $(Gloss_DEPC) $(Gloss_DEPCXX)
+
+Build/Objects/Gloss/%.o: Modules/Gloss/Source/%.c Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(CC) $(Gloss_CPPFLAGS) $(Gloss_CFLAGS) -MMD -MP -MT Build/Dependencies/Gloss/$*.d -c -o $@ $<
+Build/Arch-Objects/x86_64/Gloss/%.o: Modules/Gloss/Arch/x86_64/Source/%.c Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(CC) $(Gloss_CPPFLAGS) $(Gloss_CFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/Gloss/$*.d -c -o $@ $<
+
+Build/Objects/Gloss/%.o: Modules/Gloss/Source/%.cpp Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(CXX) $(Gloss_CPPFLAGS) $(Gloss_CXXFLAGS) -MMD -MP -MT Build/Dependencies/Gloss/$*.d -c -o $@ $<
+Build/Arch-Objects/x86_64/Gloss/%.o: Modules/Gloss/Arch/x86_64/Source/%.cpp Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(CXX) $(Gloss_CPPFLAGS) $(Gloss_CXXFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/Gloss/$*.d -c -o $@ $<
+
+Build/Arch-Objects/x86_64/Gloss/%.o: Modules/Gloss/Arch/x86_64/Source/%.asm Makefile $(Gloss_INCASM)
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(AS) $(Gloss_ASFLAGS) -o $@ $<
+
+Build/Binaries/Gloss.sys: $(GLOSS_OBJINIT) $(Gloss_OBJC) $(Gloss_OBJCXX) $(Gloss_OBJASM)
+	@echo "    Linking $(@F)"
+	@mkdir -p $(@D)
+	@$(CC) $(Gloss_LDFLAGS) -o $@ -T Modules/Gloss/Link.ld $^
+
+###############################################################################
+# Kernel                                                                       #
+###############################################################################
+# .PHONY: Kernel
+# Kernel: Build/Binaries/Kernel.sys
+
+# Kernel_OBJC := $(addprefix Build/Objects/Kernel/,$(patsubst %.c,%.o,$(shell find -L Modules/Kernel/Source -type f -name '*.c' | sed 's/Modules\/Kernel\/Source\///g')))
+# Kernel_OBJC += $(addprefix Build/Arch-Objects/x86_64/Kernel/,$(patsubst %.c,%.o,$(shell find -L Modules/Kernel/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/Kernel\/Arch\/x86_64\/Source\///g')))
+# Kernel_OBJCXX := $(addprefix Build/Objects/Kernel/,$(patsubst %.cpp,%.o,$(shell find -L Modules/Kernel/Source -type f -name '*.cpp' | sed 's/Modules\/Kernel\/Source\///g')))
+# Kernel_OBJCXX += $(addprefix Build/Arch-Objects/x86_64/Kernel/,$(patsubst %.cpp,%.o,$(shell find -L Modules/Kernel/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/Kernel\/Arch\/x86_64\/Source\///g')))
+
+# Kernel_OBJASM := $(addprefix Build/Arch-Objects/x86_64/Kernel/,$(patsubst %.asm,%.o,$(shell find -L Modules/Kernel/Arch/x86_64/Source -type f -name '*.asm' | sed 's/Modules\/Kernel\/Arch\/x86_64\/Source\///g')))
+# Kernel_INCASM := $(shell find -L Modules/Kernel/Arch/x86_64/Source -type f -name '*.inc')
+
+# Kernel_DEPC := $(addprefix Build/Dependencies/Kernel/,$(patsubst %.c,%.d,$(shell find -L Modules/Kernel/Source -type f -name '*.c' | sed 's/Modules\/Kernel\/Source\///g')))
+# Kernel_DEPC += $(addprefix Build/Arch-Dependencies/x86_64/Kernel/,$(patsubst %.c,%.d,$(shell find -L Modules/Kernel/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/Kernel\/Arch\/x86_64\/Source\///g')))
+# Kernel_DEPCXX := $(addprefix Build/Dependencies/Kernel/,$(patsubst %.cpp,%.d,$(shell find -L Modules/Kernel/Source -type f -name '*.cpp' | sed 's/Modules\/Kernel\/Source\///g')))
+# Kernel_DEPCXX += $(addprefix Build/Arch-Dependencies/x86_64/Kernel/,$(patsubst %.cpp,%.d,$(shell find -L Modules/Kernel/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/Kernel\/Arch\/x86_64\/Source\///g')))
+
+# -include $(Kernel_DEPC) $(Kernel_DEPCXX)
+
+# Build/Objects/Kernel/%.o: Modules/Kernel/Source/%.c Makefile
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Dependencies/Kernel/$*.d -c -o $@ $<
+# Build/Arch-Objects/x86_64/Kernel/%.o: Modules/Kernel/Arch/x86_64/Source/%.c Makefile
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/Kernel/$*.d -c -o $@ $<
+
+# Build/Objects/Kernel/%.o: Modules/Kernel/Source/%.cpp Makefile
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -MT Build/Dependencies/Kernel/$*.d -c -o $@ $<
+# Build/Arch-Objects/x86_64/Kernel/%.o: Modules/Kernel/Arch/x86_64/Source/%.cpp Makefile
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+
+# Build/Arch-Objects/x86_64/Kernel/%.o: Modules/Kernel/Arch/x86_64/Source/%.asm Makefile $(Kernel_INCASM)
+# 	@echo "    Compiling $(<F)   ->   $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(AS) $(ASFLAGS) -o $@ $<
+
+# Build/Binaries/Kernel.sys: $(Kernel_OBJC) $(Kernel_OBJCXX) $(Kernel_OBJASM)
+# 	@echo "    Linking $(@F)"
+# 	@mkdir -p $(@D)
+# 	@$(CC) $(LDFLAGS) -o $@ -T Modules/Kernel/Link.ld $^
+
+###############################################################################
+# SlickOS Hard Disk Image                                                     #
+###############################################################################
+.PHONY: ImageHDD
+ImageHDD: Build/Images/SlickOS.raw
+
+Build/Images/SlickOS.raw: Build/BootHDD.sys Build/Gloss.sys
+	@echo "Building Boot Image (Hard Disk)"
+	@mkdir -p $(@D) Build/Structure/HDD
+	@dd if=/dev/zero of=$@ bs=512 count=204800 status=none
+	@dd if=$< of=$@ conv=notrunc bs=512 count=128 status=none
+	@sleep .1
+
+###############################################################################
+# SlickOS Floppy Disk Image                                                   #
+###############################################################################
+.PHONY: ImageFDD
+ImageFDD: Build/Images/SlickOS.img
+
+Build/Images/SlickOS.img: Build/Binaries/BootFDD.sys Build/Binaries/Gloss.sys
+	echo "Building Boot Image (Floppy Disk)"
+	mkdir -p $(@D) Build/Structure/FDD
+	dd if=/dev/zero of=$@ bs=512 count=2880 status=none
+	mkfs.msdos -F 12 $@ > /dev/null
+	dd if=$< of=$@ conv=notrunc bs=512 count=1 status=none
+	sudo mount -t msdos -o loop,fat=12 $@ Build/Structure/FDD
+	sudo cp $^ Build/Structure/FDD
+	sudo umount Build/Structure/FDD
+
+###############################################################################
+# SlickOS Compact Disk Image                                                   #
+###############################################################################
+.PHONY: ImageISO
+ImageISO: Build/Binaries/ImageISO.sys Build/Binaries/Gloss.sys
+	@echo "Building Boot Image (Compact Disk)"
+	@mkdir -p $(@D) Build/Structure/ISO
+	@dd if=/dev/zero of=$@ bs=512 count=2880 status=none
+	@mkfs.msdos -F 12 $@ > /dev/null
+	@dd if=$< of=$@ conv=notrunc bs=512 count=1 status=none
+	@sudo mount -t msdos -o loop,fat=12 $@ Build/Structure/FD
+	@sudo cp $^ Build/Structure/ISO
+	@sudo umount Build/Structure/ISO
 
 # all: $(PROJECTS) image
 # 	@echo "Finished Building!"
 
-# .PHONY: clean
-# clean:
-# 	@rm -rf $(addsuffix /Build,$(PROJECTS))
-
-# .PHONY: rebuild
-# rebuild: clean all
-
-# .PHONY: image
-# image: $(IMAGE)
-
-# Build/SlickOS.img: Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN
-# 	@echo "Building Boot Image (Floppy Disk)"
-# 	@mkdir -p $(@D)
-# 	@mkdir -p Build/Structure/FD
-# 	@dd if=/dev/zero of=$@ bs=512 count=2880 status=none
-# 	@mkfs.msdos -F 12 $@ > /dev/null
-# 	@dd if=$< of=$@ conv=notrunc bs=512 count=1 status=none
-# 	@sudo mount -t msdos -o loop,fat=12 $@ Build/Structure/FD
-# 	@sudo cp $(BINARIES) Build/Structure/FD
-# 	@sleep .1
-# 	@sudo umount Build/Structure/FD
-
-# Build/SlickOS.raw: Build/Binaries/Gloss-BootSector.HD/BOOTSECT.BIN
-# 	@echo "Building Boot Image (Hard Disk)"
-# 	@mkdir -p $(@D)
-# 	@mkdir -p Build/Structure/HD
-# 	@dd if=/dev/zero of=$@ bs=512 count=204800 status=none
-# 	@dd if=$< of=$@ conv=notrunc bs=512 count=128 status=none
-# 	@sleep .1
-
-# run: all
-# 	@qemu-system-x86_64 -fda Build/SlickOS.img -boot a -m 2G
+run: ImageFDD
+	@qemu-system-x86_64 -fda Build/Images/SlickOS.img -boot a -m 2G
 # #	@/opt/local/util/bin/bochs 'cpu: ips=100000000' 'boot:floppy' 'clock: sync=realtime, time0=utc' 'floppya: 1_44=Build/SlickOS.img, status=inserted' 'magic_break: enabled=1' #'romimage: file=/opt/local/util/share/bochs/bios.bin-1.7.5, address=0xfffc0000' 'vgaromimage: file=/opt/local/util/share/bochs/VGABIOS-lgpl-latest'
 # #	/opt/local/util/bin/bochs
 # #	bochs
 
 # run-hdd: all
 # 	@qemu-system-x86_64 -hda Build/SlickOS.raw -boot c -m 2G
-
-# .PHONY: Gloss-BootSector.FD
-# Gloss-BootSector.FD:
-# 	@echo "Project: Gloss-BootSector.FD"
-# 	@cd Gloss-BootSector.FD && $(MAKE) --no-print-directory
-# 	@cd ..
-# 	@mkdir -p Build/Binaries/Gloss-BootSector.FD
-# 	@cp Gloss-BootSector.FD/Build/BOOTSECT.BIN Build/Binaries/Gloss-BootSector.FD/BOOTSECT.BIN
-
-# .PHONY: Gloss
-# Gloss:
-# 	@echo "Project: Gloss"
-# 	@cd Gloss && $(MAKE) --no-print-directory
-# 	@cd ..
-# 	@mkdir -p Build/Binaries/Gloss
-# 	@cp Gloss/Build/GLOSS.SYS Build/Binaries/Gloss/GLOSS.SYS
-
-# .PHONY: Gloss-BootSector.HD
-# Gloss-BootSector.HD:
-# 	@echo "Project: Gloss-BootSector.HD"
-# 	@cd Gloss-BootSector.HD && $(MAKE) --no-print-directory
-# 	@cd ..
-# 	@mkdir -p Build/Binaries/Gloss-BootSector.HD
-# 	@cp Gloss-BootSector.HD/Build/BOOTSECT.BIN Build/Binaries/Gloss-BootSector.HD/BOOTSECT.BIN

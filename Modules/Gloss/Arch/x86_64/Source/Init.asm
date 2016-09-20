@@ -12,6 +12,9 @@ BootReal:
     mov ss, ax
     mov sp, 0x7C00
 
+    mov eax, 0xb8020
+    mov word ptr [eax], 0x1234
+
     mov cx, SECTION_BSS_SIZE
     mov di, SECTION_BSS_START
     cld
@@ -39,7 +42,7 @@ BootReal:
     
 BootReal.Failure:
     mov eax, 0xb8000
-    mov [eax], word ptr 0x4080
+    mov [eax], word ptr 0x9999
     cli
     hlt
 
