@@ -39,7 +39,7 @@ BootReal:
     
 BootReal.Failure:
     mov eax, 0xb8000
-    mov [eax], word ptr 0x4080
+    mov [eax], word ptr 0x9999
     cli
     hlt
 
