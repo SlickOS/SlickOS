@@ -244,7 +244,7 @@ LoadImage:
         jb LoadImage 
 
         mov eax, 0xb8010
-        mov word ptr [eax], 0x7777
+        mov word ptr [eax], 0x9898
 
         xchg bx, bx
 
@@ -254,6 +254,8 @@ LoadImage:
 
 Failure:
     xor ah, ah
+    mov eax, 0xb8030
+    mov word ptr [eax], 0x9898
     cli
     hlt
 

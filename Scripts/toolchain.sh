@@ -5,6 +5,7 @@ BUTIL=2.27
 TARGET=x86_64-elf
 DEST=`pwd -P`/Tools
 DESTSYS=$DEST/Sys
+CORES=`nproc`
 
 mkdir -p .TMPTOOL
 cd .TMPTOOL
@@ -27,12 +28,12 @@ mkdir -p binutils
 
 cd binutils-sys
 ../binutils-$BUTIL/configure --prefix=$DESTSYS --with-sysroot --disable-nls --disable-werror
-make
+make -j$CORES
 make install
 
 cd ../gcc-sys
 ../gcc-$GCC/configure --prefix=$DESTSYS --disable-nls --enable-languages=c,c++
-make
+make -j$CORES
 make install
 
 cd ..
@@ -44,13 +45,13 @@ LD=$DESTSYS/bin/gcc-6.2.0
 
 cd binutils
 ../binutils-$BUTIL/configure --target=$TARGET --prefix=$DEST --with-sysroot --disable-nls --disable-werror --program-prefix=$TARGET- --program-suffix=-$BUTIL
-make
+make -j$CORES
 make install
 
 cd ../gcc
 ../gcc-$GCC/configure --target=$TARGET --prefix=$DEST --disable-nls --enable-languages=c,c++ --without-headers --program-prefix=$TARGET- --program-suffix=-$GCC
-make all-gcc
-make all-target-libgcc
+make all-gcc -j$CORES
+make all-target-libgcc -j$CORES
 make install-gcc
 make install-target-libgcc
 
