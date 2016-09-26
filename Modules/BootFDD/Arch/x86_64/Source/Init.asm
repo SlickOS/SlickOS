@@ -244,18 +244,20 @@ LoadImage:
         jb LoadImage 
 
         mov eax, 0xb8010
-        mov word ptr [eax], 0x9898
+        mov word ptr [eax], 0x4040
 
-        xchg bx, bx
+        mov eax, 0xb8012
+        mov word ptr [eax], 0x4040
 
-    push 0x0000
-    push 0x8000
-    retf
+        mov eax, 0xb8014
+        mov word ptr [eax], 0x4040
+
+        jmp 0x0000:0x8000
 
 Failure:
     xor ah, ah
     mov eax, 0xb8030
-    mov word ptr [eax], 0x9898
+    mov word ptr [eax], 0x4040
     cli
     hlt
 

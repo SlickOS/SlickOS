@@ -12,8 +12,10 @@ BootReal:
     mov ss, ax
     mov sp, 0x7C00
 
+    xchg bx, bx
+
     mov eax, 0xb8020
-    mov word ptr [eax], 0x1234
+    mov word ptr [eax], 0x4040
 
     mov cx, SECTION_BSS_SIZE
     mov di, SECTION_BSS_START

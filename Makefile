@@ -11,11 +11,11 @@
 ###############################################################################
 # Set the default target
 .PHONY: all
-all: ImageFDD
+all: ImageHDD
 
 .PHONY: clean
 clean:
-	@rm -rf $(addsuffix /Build,$(PROJECTS))
+	@rm -rf Build
 
 .PHONY: rebuild
 rebuild: clean all
@@ -33,52 +33,58 @@ LD := os-gcc
 ###############################################################################
 # BootHDD                                                                     #
 ###############################################################################
-# .PHONY: BootHDD
-# BootHDD: Build/Binaries/BootHDD.sys
+.PHONY: BootHDD
+BootHDD: Build/Binaries/BootHDD.sys
 
-# BootHDD_OBJINIT := Build/Arch-Objects/x86_64/BootHDD/Init.o
+BootHDD_OBJINIT := Build/Arch-Objects/x86_64/BootHDD/Init.o
 
-# BootHDD_OBJC := $(addprefix Build/Objects/BootHDD/,$(patsubst %.c,%.o,$(shell find -L Modules/BootHDD/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Source\///g')))
-# BootHDD_OBJC += $(addprefix Build/Arch-Objects/x86_64/BootHDD/,$(patsubst %.c,%.o,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
-# BootHDD_OBJCXX := $(addprefix Build/Objects/BootHDD/,$(patsubst %.cpp,%.o,$(shell find -L Modules/BootHDD/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Source\///g')))
-# BootHDD_OBJCXX += $(addprefix Build/Arch-Objects/x86_64/BootHDD/,$(patsubst %.cpp,%.o,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
+BootHDD_CFLAGS :=
+BootHDD_CXXFLAGS :=
+BootHDD_CPPFLAGS :=
+BootHDD_ASFLAGS := -I Modules/BootHDD/Arch/x86_64/Source
+BootHDD_LDFLAGS := -ffreestanding -O2 -nostdlib -lgcc
 
-# BootHDD_OBJASM := $(addprefix Build/Arch-Objects/x86_64/BootHDD/,$(patsubst %.asm,%.o,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.asm' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
-# BootHDD_INCASM := $(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.inc')
+BootHDD_OBJC := $(addprefix Build/Objects/BootHDD/,$(patsubst %.c,%.o,$(shell find -L Modules/BootHDD/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Source\///g')))
+BootHDD_OBJC += $(addprefix Build/Arch-Objects/x86_64/BootHDD/,$(patsubst %.c,%.o,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
+BootHDD_OBJCXX := $(addprefix Build/Objects/BootHDD/,$(patsubst %.cpp,%.o,$(shell find -L Modules/BootHDD/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Source\///g')))
+BootHDD_OBJCXX += $(addprefix Build/Arch-Objects/x86_64/BootHDD/,$(patsubst %.cpp,%.o,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
 
-# BootHDD_DEPC := $(addprefix Build/Dependencies/BootHDD/,$(patsubst %.c,%.d,$(shell find -L Modules/BootHDD/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Source\///g')))
-# BootHDD_DEPC += $(addprefix Build/Arch-Dependencies/x86_64/BootHDD/,$(patsubst %.c,%.d,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
-# BootHDD_DEPCXX := $(addprefix Build/Dependencies/BootHDD/,$(patsubst %.cpp,%.d,$(shell find -L Modules/BootHDD/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Source\///g')))
-# BootHDD_DEPCXX += $(addprefix Build/Arch-Dependencies/x86_64/BootHDD/,$(patsubst %.cpp,%.d,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
+BootHDD_OBJASM := $(addprefix Build/Arch-Objects/x86_64/BootHDD/,$(patsubst %.asm,%.o,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.asm' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
+BootHDD_INCASM := $(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.inc')
 
-# -include $(BootHDD_DEPC) $(BootHDD_DEPCXX)
+BootHDD_DEPC := $(addprefix Build/Dependencies/BootHDD/,$(patsubst %.c,%.d,$(shell find -L Modules/BootHDD/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Source\///g')))
+BootHDD_DEPC += $(addprefix Build/Arch-Dependencies/x86_64/BootHDD/,$(patsubst %.c,%.d,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.c' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
+BootHDD_DEPCXX := $(addprefix Build/Dependencies/BootHDD/,$(patsubst %.cpp,%.d,$(shell find -L Modules/BootHDD/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Source\///g')))
+BootHDD_DEPCXX += $(addprefix Build/Arch-Dependencies/x86_64/BootHDD/,$(patsubst %.cpp,%.d,$(shell find -L Modules/BootHDD/Arch/x86_64/Source -type f -name '*.cpp' | sed 's/Modules\/BootHDD\/Arch\/x86_64\/Source\///g')))
 
-# Build/Objects/BootHDD/%.o: Modules/BootHDD/Source/%.c Makefile
-# 	@echo "    Compiling $(<F)   ->   $(@F)"
-# 	@mkdir -p $(@D)
-# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Dependencies/BootHDD/$*.d -c -o $@ $<
-# Build/Arch-Objects/x86_64/BootHDD/%.o: Modules/BootHDD/Arch/x86_64/Source/%.c Makefile
-# 	@echo "    Compiling $(<F)   ->   $(@F)"
-# 	@mkdir -p $(@D)
-# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/BootHDD/$*.d -c -o $@ $<
+-include $(BootHDD_DEPC) $(BootHDD_DEPCXX)
 
-# Build/Objects/BootHDD/%.o: Modules/BootHDD/Source/%.cpp Makefile
-# 	@echo "    Compiling $(<F)   ->   $(@F)"
-# 	@mkdir -p $(@D)
-# 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -MT Build/Dependencies/BootHDD/$*.d -c -o $@ $<
-# Build/Arch-Objects/x86_64/BootHDD/%.o: Modules/BootHDD/Arch/x86_64/Source/%.cpp Makefile
-# 	@echo "    Compiling $(<F)   ->   $(@F)"
-# 	@mkdir -p $(@D)
+Build/Objects/BootHDD/%.o: Modules/BootHDD/Source/%.c Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(CC) $(BootHDD_CPPFLAGS) $(BootHDD_CFLAGS) -MMD -MP -MT Build/Dependencies/BootHDD/$*.d -c -o $@ $<
+Build/Arch-Objects/x86_64/BootHDD/%.o: Modules/BootHDD/Arch/x86_64/Source/%.c Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(CC) $(BootHDD_CPPFLAGS) $(BootHDD_CFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/BootHDD/$*.d -c -o $@ $<
 
-# Build/Arch-Objects/x86_64/BootHDD/%.o: Modules/BootHDD/Arch/x86_64/Source/%.asm Makefile $(BootHDD_INCASM)
-# 	@echo "    Compiling $(<F)   ->   $(@F)"
-# 	@mkdir -p $(@D)
-# 	@$(AS) $(ASFLAGS) -o $@ $<
+Build/Objects/BootHDD/%.o: Modules/BootHDD/Source/%.cpp Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(CXX) $(BootHDD_CPPFLAGS) $(BootHDD_CXXFLAGS) -MMD -MP -MT Build/Dependencies/BootHDD/$*.d -c -o $@ $<
+Build/Arch-Objects/x86_64/BootHDD/%.o: Modules/BootHDD/Arch/x86_64/Source/%.cpp Makefile
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
 
-# Build/Binaries/BootHDD.sys: $(BootHDD_OBJINIT) $(BootHDD_OBJC) $(BootHDD_OBJCXX) $(BootHDD_OBJASM)
-# 	@echo "    Linking $(@F)"
-# 	@mkdir -p $(@D)
-# 	@$(CC) $(LDFLAGS) -o $@ -T Modules/BootHDD/Link.ld $^
+Build/Arch-Objects/x86_64/BootHDD/%.o: Modules/BootHDD/Arch/x86_64/Source/%.asm Makefile $(BootHDD_INCASM)
+	@echo "    Compiling $(<F)   ->   $(@F)"
+	@mkdir -p $(@D)
+	@$(AS) $(BootHDD_ASFLAGS) -o $@ $<
+
+Build/Binaries/BootHDD.sys: $(BootHDD_OBJINIT) $(BootHDD_OBJC) $(BootHDD_OBJCXX) $(BootHDD_OBJASM)
+	@echo "    Linking $(@F)"
+	@mkdir -p $(@D)
+	@$(CC) $(BootHDD_LDFLAGS) -o $@ -T Modules/BootHDD/Link.ld $^
 
 ###############################################################################
 # BootFDD                                                                     #
@@ -162,16 +168,16 @@ Build/Binaries/BootFDD.sys: $(BootFDD_OBJINIT) $(BootFDD_OBJC) $(BootFDD_OBJCXX)
 # Build/Objects/BootISO/%.o: Modules/BootISO/Source/%.c Makefile
 # 	@echo "    Compiling $(<F)   ->   $(@F)"
 # 	@mkdir -p $(@D)
-# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Dependencies/BootISO/$*.d -c -o $@ $<
+# 	@$(CC) $(BootISO_CPPFLAGS) $(BootISO_CFLAGS) -MMD -MP -MT Build/Dependencies/BootISO/$*.d -c -o $@ $<
 # Build/Arch-Objects/x86_64/BootISO/%.o: Modules/BootISO/Arch/x86_64/Source/%.c Makefile
 # 	@echo "    Compiling $(<F)   ->   $(@F)"
 # 	@mkdir -p $(@D)
-# 	@$(CC) $(CPPFLAGS) $(CFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/BootISO/$*.d -c -o $@ $<
+# 	@$(CC) $(BootISO_CPPFLAGS) $(BootISO_CFLAGS) -MMD -MP -MT Build/Arch-Dependencies/x86_64/BootISO/$*.d -c -o $@ $<
 
 # Build/Objects/BootISO/%.o: Modules/BootISO/Source/%.cpp Makefile
 # 	@echo "    Compiling $(<F)   ->   $(@F)"
 # 	@mkdir -p $(@D)
-# 	@$(CXX) $(CPPFLAGS) $(CXXFLAGS) -MMD -MP -MT Build/Dependencies/BootISO/$*.d -c -o $@ $<
+# 	@$(CXX) $(BootISO_CPPFLAGS) $(BootISO_CXXFLAGS) -MMD -MP -MT Build/Dependencies/BootISO/$*.d -c -o $@ $<
 # Build/Arch-Objects/x86_64/BootISO/%.o: Modules/BootISO/Arch/x86_64/Source/%.cpp Makefile
 # 	@echo "    Compiling $(<F)   ->   $(@F)"
 # 	@mkdir -p $(@D)
@@ -179,12 +185,12 @@ Build/Binaries/BootFDD.sys: $(BootFDD_OBJINIT) $(BootFDD_OBJC) $(BootFDD_OBJCXX)
 # Build/Arch-Objects/x86_64/BootISO/%.o: Modules/BootISO/Arch/x86_64/Source/%.asm Makefile $(BootISO_INCASM)
 # 	@echo "    Compiling $(<F)   ->   $(@F)"
 # 	@mkdir -p $(@D)
-# 	@$(AS) $(ASFLAGS) -o $@ $<
+# 	@$(AS) $(BootISO_ASFLAGS) -o $@ $<
 
 # Build/Binaries/BootISO.sys: $(BootISO_OBJINIT) $(BootISO_OBJC) $(BootISO_OBJCXX) $(BootISO_OBJASM)
 # 	@echo "    Linking $(@F)"
 # 	@mkdir -p $(@D)
-# 	@$(CC) $(LDFLAGS) -o $@ -T Modules/BootISO/Link.ld $^
+# 	@$(CC) $(BootISO_LDFLAGS) -o $@ -T Modules/BootISO/Link.ld $^
 
 ###############################################################################
 # Gloss                                                                       #
@@ -297,7 +303,7 @@ Build/Binaries/Gloss.sys: $(GLOSS_OBJINIT) $(Gloss_OBJC) $(Gloss_OBJCXX) $(Gloss
 .PHONY: ImageHDD
 ImageHDD: Build/Images/SlickOS.raw
 
-Build/Images/SlickOS.raw: Build/BootHDD.sys Build/Gloss.sys
+Build/Images/SlickOS.raw: Build/Binaries/BootHDD.sys Build/Binaries/Gloss.sys
 	@echo "Building Boot Image (Hard Disk)"
 	@mkdir -p $(@D) Build/Structure/HDD
 	@dd if=/dev/zero of=$@ bs=512 count=204800 status=none
@@ -337,8 +343,8 @@ ImageISO: Build/Binaries/ImageISO.sys Build/Binaries/Gloss.sys
 # all: $(PROJECTS) image
 # 	@echo "Finished Building!"
 
-run: ImageFDD
-	@qemu-system-x86_64 -fda Build/Images/SlickOS.img -boot a -m 2G
+run: ImageHDD
+	@qemu-system-x86_64 -hda Build/Images/SlickOS.raw -boot c -m 2G
 # #	@/opt/local/util/bin/bochs 'cpu: ips=100000000' 'boot:floppy' 'clock: sync=realtime, time0=utc' 'floppya: 1_44=Build/SlickOS.img, status=inserted' 'magic_break: enabled=1' #'romimage: file=/opt/local/util/share/bochs/bios.bin-1.7.5, address=0xfffc0000' 'vgaromimage: file=/opt/local/util/share/bochs/VGABIOS-lgpl-latest'
 # #	/opt/local/util/bin/bochs
 # #	bochs
