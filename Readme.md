@@ -27,13 +27,19 @@ The current minimum hardware requirements are as follows:
 To work with Slick OS, you must have the following software installed on your development machine:
 * Linux-Based OS
 * Git
-* GCC 5
+* GCC
 * GNU Make
+* SVN
+* QEMU
+* xorriso
+* dosfstools
 
 # Getting Started
-Currently, Slick OS does not have any pre-built images available for download. For now, you must build the operating system directly. This can be done by cloning the repository using `git clone https://github.com/SlickOS/SlickOS.git SlickOS`.
+Currently, Slick OS does not have any pre-built images available for download. For now, you must build the operating system directly. This can be done by cloning the repository using `git clone https://github.com/SlickOS/SlickOS.git SlickOS`. If you plan on contributing to the project, fork the project and clone your fork instead of the official repository.
 
-After cloning the repository, simply run `make toolchain`, followed by `make`, and finally `make install` (if installing to a physical drive), or `make run` (if running through QEMU).
+After cloning the repository, you need to build the toolchain. To do this, make sure you have all of the above listed software installed, and run `./Scripts/tool.sh` from the root directory of the project.
+
+You can now build and run the operating system using the commands `make` and `make run`.
 
 # Goals
 ### Bootloader
