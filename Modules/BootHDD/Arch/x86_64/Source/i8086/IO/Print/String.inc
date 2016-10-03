@@ -35,7 +35,7 @@ I8086.IO.Print.String:
         // printing the string.
         lodsb
         test al, al
-        jne I8086.IO.Print.String.Done
+        je I8086.IO.Print.String.Done
 
         // Now we simply call the character printing function.
         call I8086.IO.Print.Char
