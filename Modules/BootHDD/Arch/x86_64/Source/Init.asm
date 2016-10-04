@@ -209,7 +209,7 @@ BootLong:
     mov ss, ax
     mov rsp, 0x20000
 
-//    call Entry
+    call Entry
 
     cli
     hlt
